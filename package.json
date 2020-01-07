@@ -4,7 +4,8 @@
   "description": "the new student",
   "main": "server.js",
   "scripts": {
-    "test": "node server.js"
+    "test": "node server.js",
+    "start": "node server.js"
   },
   "keywords": [
     "the",
