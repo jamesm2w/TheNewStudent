@@ -1,0 +1,15 @@
+body {
+	padding-left: 300px;
+
+	background-color: #eeeeee;
+}
+
+a {
+	cursor: pointer;
+}
+
+@media only screen and (max-width : 992px) {
+	body {
+		padding-left: 0;
+	}
+}

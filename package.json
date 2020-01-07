@@ -1,0 +1,22 @@
+{
+  "name": "thenewstudent",
+  "version": "1.0.0",
+  "description": "the new student",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js"
+  },
+  "keywords": [
+    "the",
+    "new",
+    "student"
+  ],
+  "author": "James Macer-Wright",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "materialize-css": "^1.0.0-rc.2",
+    "sqlite3": "^4.1.1",
+    "uuid": "^3.3.3"
+  }
+}

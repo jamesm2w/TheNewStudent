@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>The New Student</title>
+		<meta charset="UTF-8">
+		
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		
+		<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+		<link type="text/css" rel="stylesheet" href="css/index.css"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	</head>
+	<body>
+		<!-- Registration Modal -->
+		<div id="registerModal" class="modal modal-fixed-footer">
+			<div class="modal-content">
+				<h4>Register for The New Student</h4>
+				<div class="row">
+					<div class="input-field col m6 s12">
+						<i class="material-icons prefix">account_circle</i>
+				    	<input id="registerUsername" type="text">
+				        <label for="registerUsername">Username</label>
+				        <span class="helper-text" data-error="Username Taken" data-success="Username is available">Please choose a unique username</span>
+				    </div>
+				    <div class="input-field col m6 s12">
+				    	<input id="registerDob" type="text" class="datepicker">
+				    	<label for="registerDob">Date of Birth</label>
+				    	<span class="helper-text">You must be over 13 years old</span>
+				    </div>
+				    <div class="input-field col m6 s12">
+						<i class="material-icons prefix">mail</i>
+				    	<input id="registerEmail" class="validate" type="email" validate>
+				        <label for="registerEmail">Email</label>
+				    </div>
+				    <div class="input-field col m6 s12">
+				    	<input id="registerConfirmEmail" type="text">
+				        <label for="registerConfirmEmail">Confirm Email</label>
+				    </div>
+					<div class="input-field col m6 s12">
+						<i class="material-icons prefix">vpn_key</i>
+				        <input id="registerPassword" type="password">
+				        <label for="registerPassword">Password</label>
+				    </div>
+				    <div class="input-field col m6 s12">
+				        <input id="registerConfirmPassword" type="password">
+				        <label for="registerConfirmPassword">Confirm Password</label>
+				    </div>
+
+				    <div class="input-field col m6 s12">
+				        <input id="registerToken" type="text">
+				        <label for="registerToken">Registration Token (optional)</label>
+				    </div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<a id="register" class="modal-close waves-effect waves-green btn-flat">Submit</a>
+				<a class="modal-close waves-effect waves-red btn-flat red-text">Cancel</a>
+			</div>
+		</div>
+
+		<!-- Lost Password Modal -->
+		<div id="lostPasswordModal" class="modal">
+			<div class="modal-content">
+				<h4>Lost Password</h4>
+				<p>An email will be sent to the following account with instructions to reset the accounts password</p>
+
+				<div class="input-field col m6 s12">
+					<i class="material-icons prefix">mail</i>
+			    	<input id="lostPasswordEmail" class="validate" type="email" validate>
+			        <label for="lostPasswordEmail">Email</label>
+			    </div>
+
+			</div>
+			<div class="modal-footer">
+				<a id="sendLostPassword" class="modal-close btn-flat">Send</a>
+			</div>
+		</div>
+		
+		<!-- Navbar and Sidenav -->
+		<nav class="blue-grey darken-3">
+			<div class="nav-wrapper">
+				<a href="#home" class="brand-logo center">The New Student</a>
+				<a data-target="fixedNav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+			</div>
+		</nav>
+				
+		<ul class="sidenav sidenav-fixed" id="fixedNav">
+			<li>
+				<div class="user-view">
+					<div class="background">
+						<img src="https://via.placeholder.com/600">
+					</div>
+					<a href="#profile"><img class="circle" src="https://via.placeholder.com/600"></a>
+					<a href="#profile">
+						<span class="white-text name" id="loggedIn">Not Logged In</span>
+					</a>
+					<a href="#profile"><span class="white-text email">--</span></a>
+				</div>
+			</li>
+			<li><a href="#"><i class="material-icons">home</i>Homepage</a></li>
+			<li><a href="#profile"><i class="material-icons">account_circle</i>Profile</a></li>
+			<li><a href="#class"><i class="material-icons">people</i>Class</a></li>
+			<li><a href="#questions"><i class="material-icons">spellcheck</i>Answer Questions</a></li>
+			<li><a href="#chat"><i class="material-icons">forum</i>Chat</a></li>
+			<li><div class="divider"></div></li>
+		</ul>
+		
+		<div id="pageContent" class="container">
+		
+		</div>
+		
+		<script src="js/materialize.min.js"></script>
+		<script src="js/Route.js"></script>
+		<script src="js/Router.js"></script>
+		<script src="js/Storage.js"></script>
+		<script src="js/Requester.js"></script>
+		<script src="js/ApplicationStateManager.js"></script>
+		<script src="js/app.js"></script>
+	</body>
+</html>
