@@ -14,7 +14,11 @@ function afterHomeShow () {
 		this.stateManager.checkLogIn(username, password, remember);
 	});
 
-	$("#register")[0].addEventListener("click", e => {
+	let el = $("#register")[0];
+	let clone = el.cloneNode(true);
+	el.replaceWith(clone);
+
+	clone.addEventListener("click", e => {
 		e.preventDefault();
 
 		let username = document.getElementById("registerUsername").value,
@@ -73,6 +77,30 @@ function beforeProfileShow () {
 		return false;
 	}
 	return true;
+}
+
+function afterProfileShow () {
+	M.AutoInit();
+
+	if (!this.stateManager.loggedIn || typeof this.stateManager.profile == "undefined") {
+		M.toast({html: "Error recieveing profile data from server"});
+	} else {
+		let profile = this.stateManager.profile;
+
+		document.getElementById("profileUsername")
+		document.getElementById("profileDescription")
+		document.getElementById("profilePoints")
+
+		document.getElementById("profilePicture")
+		document.getElementById("profileBadges")
+
+		// something with friends list and handlebars maybe
+
+		// bind event listeners to forms
+
+		// fetch and display current homeworks and stuff
+	}
+
 }
 
 /*var router = new Router([

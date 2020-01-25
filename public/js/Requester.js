@@ -14,6 +14,10 @@ class Request {
 		return new Request("GET", uri);
 	}
 
+	get securityToken () {
+		return window.localStorage.getItem("token");
+	}
+
 	execute () {
 		return new Promise((resolve, reject) => {
 			let xhr = new XMLHttpRequest();
@@ -21,6 +25,7 @@ class Request {
 			xhr.open(this.method, this.uri, true);
 
 			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.setRequestHeader("Security", this.securityToken);
 
 			xhr.onload = () => resolve(JSON.parse(xhr.responseText));
 

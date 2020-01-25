@@ -5,6 +5,10 @@ class ApplicationStateManager {
 		this.token = undefined;
 		this.profile = undefined;
 		this.appStorage = undefined;
+
+		this.profilePage = new ProfilePage(this);
+
+
 		this.pageRouter = this.createRouter();
 		this.currentPage = "home";
 
@@ -15,12 +19,18 @@ class ApplicationStateManager {
 				this.checkToken();
 			}
 		});
+
+		
 	}
+
+	toast (msg) {
+		M.toast({html: msg});
+	};
 
 	createRouter () {
 		return new Router([
 			new Route("home", "home.html", afterHomeShow, undefined, true),
-			new Route("profile", "profile.html", undefined, beforeProfileShow),
+			this.profilePage.route,
 			new Route("class", "class.html"),
 			new Route("questions", "questions.html"),
 			new Route("chat", "chat.html")
@@ -37,13 +47,15 @@ class ApplicationStateManager {
 				this.appStorage.setString("token", response.token);
 				this.logIn();
 
+				this.profile = response;
+
 				if (remember) { // WOAH THATS SOME PLAINTEXT PASSWORD STORAGE BETTER CHANGE THAT AT SOME POINT
 					this.appStorage.setJSON("rememberedCredentials", {"username": username, "password": password});
 				}
 
 			} else {
 				// Incorrect Login
-				M.toast({html: "Incorrect Login"});
+				M.toast({html: "Incorrect Login " + JSON.stringify(response.reason)});
 			}
 
 		} catch (e) {
@@ -63,6 +75,8 @@ class ApplicationStateManager {
 				this.appStorage.setString("token", response.token);
 				this.logIn();
 
+				this.profile = response;
+
 			} else {
 				// Invalid token
 				this.appStorage.removeItem("token");
@@ -79,6 +93,8 @@ class ApplicationStateManager {
 		this.loggedIn = true;
 		window.location.hash = "profile";
 
+		Request.securityToken = this.appStorage.getString("token");
+
 		M.toast({html: "Logged In"});
 		$("#loggedIn")[0].innerHTML = `Logged In
 			<a class="waves-effect waves-light btn-flat blue-grey darken-3 white-text" onclick="asm.logOut()">Logout</a>`;
@@ -90,6 +106,7 @@ class ApplicationStateManager {
 		this.loggedIn = false;
 		this.profile = null;
 		this.appStorage.removeItem("token");
+		Request.securityToken = this.appStorage
 		
 		window.location.hash = "";
 
