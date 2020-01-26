@@ -54,12 +54,11 @@ app.post("/register", async (req, res) => {
 		};
 		await TNS.sendMail(message);
 
-		res.send(JSON.stringify({"success": true, "profile": JSON.stringify(user)}));
+		res.send(JSON.stringify({"success": true}));
 	} catch (e) {
 		console.log(e);
 		res.send(JSON.stringify({"success": false, "reason": JSON.stringify(e)}));
 	}
-	
 });
 
 app.get("/register", async (req, res) => {
@@ -85,9 +84,11 @@ app.get("/username", async (req, res) => {
 
 	let username = req.query.username;
 
+	let search = req.query.search;
+
 	try {
 
-		let data = await TNS.UsersTable.getAllWithUsername(username);
+		let data = await TNS.UsersTable.getAllWithUsername(username, search);
 
 		if (data.length == 0 || typeof data == "undefined") {
 			res.send(JSON.stringify({"success": true, "taken": false, "data": data}));
@@ -109,7 +110,6 @@ app.get("/lostPassword", (req, res) => {
 });
 
 app.post("/authenticate", async (req, res) => {
-	
 
 	req.body.password = crypto.createHash('md5').update(req.body.password).digest('hex');
 
@@ -181,7 +181,7 @@ app.post("/updateDetails", async (req, res) => {
 		}
 
 		if (newDetails.picture) {
-			TNS.ProfilesTable.setPicture(userId.id, newDetais.picture);
+			TNS.ProfilesTable.setPicture(userId.id, newDetails.picture);
 		}
 
 		res.send(JSON.stringify({"success": true}));
@@ -203,22 +203,111 @@ app.post("/updateCredentials", async (req, res) => {
 
 		if (newDetails.password) {
 			newDetails = crypto.createHash('md5').update(newDetails.password).digest('hex');
-			TNS.UsersTable.setUserPassword(userId.id, newDetails.description);
+			TNS.UsersTable.changeUserPassword(userId.id, newDetails.description);
 		}
 
 		if (newDetails.email) {
-			TNS.UsersTable.setUserEmail(userId.id, newDetais.email);
+			TNS.UsersTable.changeUserEmail(userId.id, newDetails.email);
 		}
 
 		if (newDetails.token) {
-			TNS.UsersTable.setUserToken(userId.id, newDetais.token);
+			TNS.UsersTable.changeUserToken(userId.id, newDetails.token);
 		}
+
+		var message = {
+			from: "admin@thenewstudent.xyz",
+			to: userId.email,
+			subject: "TheNewStudent Details Edited",
+			text: `Your TheNewStudent account details have been changed. If this was you then you can ignore this email.
+			If this wasn't you then you can change you password here: http://localhost:2020/lostPassword?token=${req.get("Security")}`,
+		};
+		await TNS.sendMail(message);
 
 		res.send(JSON.stringify({"success": true}));
 
 	} catch (e) {
 		console.log(e);
 		res.send(JSON.stringify({"success": false, "reason": e}));
+	}
+});
+
+app.post("/friendRequest", async (req, res) => {
+	let token = req.get("Security");
+	let userToFriend = req.body.username;
+	try {
+		let userA = await TNS.TokensTable.getUser(token);
+		let userB = await TNS.UsersTable.getFromUsername(userToFriend);
+
+		if (userA.username == userB.username) throw "Can't befriend yourself";
+
+		await TNS.FriendshipsTable.newFriendship(userA.id, userB.id);
+
+		let message = {
+			from: "admin@thenewstudent.xyz",
+			to: userB.email,
+			subject: "TheNewStudent Friend Request",
+			text: `You have recieved a friend reqest from ${userA.username}. To accept or reject this request log in to TheNewStudent.`
+		}
+		await TNS.sendMail(message);
+
+		res.send(JSON.stringify({"success": true}));
+	} catch (err) {
+		console.log(err);
+		res.send(JSON.stringify({"success": false, "reason": err}));
+	}
+});
+
+app.get("/friendRequest", async (req, res) => {
+	let token = req.get("Security");
+	let accept = req.query.accept === "true";
+	let reject = req.query.reject === "true";
+
+	try {
+		let userA = await TNS.TokensTable.getUser(token);
+		let userB = await TNS.UsersTable.getFromUsername(req.query.username);
+		
+		if (accept && !reject) {
+			await TNS.FriendshipsTable.verifyFriendship(userA.id, userB.id);
+			res.send(JSON.stringify({"success": true, "friends": await TNS.FriendshipsTable.getFriendArray(userA.id)}));
+
+		} else if (reject && !accept) {
+			await TNS.FriendshipsTable.deleteFriendship(userA.id, userB.id);
+			res.send(JSON.stringify({"success": true, "friends": await TNS.FriendshipsTable.getFriendArray(userA.id)}));
+
+		} else {
+			res.send(JSON.stringify({"success": false, "reason": "Malformed request"}));
+		}
+
+	} catch (e) {
+		console.log(e);
+		res.send(JSON.stringify({"success": false, "reason": e}));
+	}
+});
+
+app.get("/profile", async (req, res) => {	
+	let token = req.get("Security");
+	try {
+		let user = await TNS.TokensTable.getUser(token);
+
+		res.send(JSON.stringify({"success": true, "data": user}));
+
+	} catch (err) {
+		console.log(err);
+		res.send(JSON.stringify({"success": false, "reason": err}));
+	}
+});
+
+app.get("/profile/friends", async (req, res) => {
+	let token = req.get("Security");
+	try {
+		let user = await TNS.TokensTable.getUser(token);
+		let friends = await TNS.FriendshipsTable.getFriendArray(user.id);
+
+		res.send(JSON.stringify({"success": true, "data": friends}));
+
+	} catch (err) {
+		console.log(err);
+		res.send(JSON.stringify({"success": false, "reason": err}));
 	}
 });
 

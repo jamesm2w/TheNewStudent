@@ -1,7 +1,7 @@
 {
   "name": "thenewstudent",
   "version": "1.0.0",
-  "description": "the new student",
+  "description": "TheNewStudent is a social media site for students for subject based revision and practice. (Not realy)",
   "main": "server.js",
   "scripts": {
     "test": "node server.js",
@@ -13,7 +13,11 @@
     "student"
   ],
   "author": "James Macer-Wright",
-  "license": "ISC",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">= 12.0.0",
+    "npm": ">= 6.0.0"
+  },
   "dependencies": {
     "express": "^4.17.1",
     "handlebars": "^4.7.2",

@@ -5,6 +5,7 @@ const TableTokens = require("./tables/TableTokens.js");
 const TableUsers = require("./tables/TableUsers.js");
 const TableProfiles = require("./tables/TableProfiles.js");
 const TableUserLevel = require("./tables/TableUserLevel.js");
+const TableFriendships = require("./tables/TableFriendships.js");
 
 class TheNewStudent {
 	
@@ -14,6 +15,7 @@ class TheNewStudent {
 		this.UsersTable = new TableUsers(this);
 		this.ProfilesTable = new TableProfiles(this);
 		this.UserLevelTable = new TableUserLevel(this);
+		this.FriendshipsTable = new TableFriendships(this);
 
 		this.db = new sqlite3.Database(dbFilePath, async err => {
 			if (err) {
@@ -26,12 +28,26 @@ class TheNewStudent {
 				this.UsersTable.createTable();
 				this.ProfilesTable.createTable();
 				this.UserLevelTable.createTable();
+				this.FriendshipsTable.createTable();
 
-				console.log(await this.all(`SELECT * FROM Tokens
-		INNER JOIN Users ON Tokens.userId = Users.id 
-		INNER JOIN Profiles ON Tokens.userId = Profiles.userId
-		INNER JOIN UserLevels ON Tokens.userId = UserLevels.userId`));
+				await this.run(`CREATE VIEW IF NOT EXISTS UsersPublic AS
+				 SELECT id, username, ref, 
+				 Profiles.picture AS picture,
+				 Profiles.description AS description, 
+				 Profiles.points AS points,
+				 UserLevels.chatLevel AS chatLevel,
+				 UserLevels.classLevel AS classLevel,
+				 UserLevels.adminLevel AS adminLevel FROM Users
+				 INNER JOIN Profiles ON Users.id = Profiles.userId
+				 INNER JOIN UserLevels ON Users.id = UserLevels.userId;`);
 
+				await this.run(`CREATE VIEW IF NOT EXISTS UsersPrivate AS 
+					SELECT * FROM Users
+					INNER JOIN Profiles ON Users.id = Profiles.userId
+					INNER JOIN UserLevels ON Users.id = UserLevels.userId;`)
+
+				console.log(await this.all(`SELECT * FROM UsersPrivate`));
+				console.log(await this.all(`SELECT * FROM Friendships`));
 			}
 		});
 
@@ -42,6 +58,12 @@ class TheNewStudent {
 		        user: "harry4@ethereal.email",
 		        pass: "aqT1Q5xAkq6eg2GhG3"
 		    }
+		    /*host: "smtp-pulse.com",
+		    port: 2525,
+		    auth: {
+		    	user: "jamesmacerwright@gmail.com",
+		    	pass: "X5g8j7jk9r"
+		    }*/
 		});
 	}
 
@@ -55,7 +77,7 @@ class TheNewStudent {
 				resolve(info);
 
 			}).catch(e => {
-				console.log("Error sendind " + JSON.stringify(data));
+				console.log("Error sending " + JSON.stringify(data));
 				console.log(e);
 
 				reject(e);

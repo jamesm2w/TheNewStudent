@@ -17,8 +17,7 @@ class UserProfileTable {
 			dob TEXT,
 			ref TEXT,
 			verified INTEGER DEFAULT 0
-		)
-		`;
+		)`;
 
 		await this.tns.run(sql);
 	}
@@ -42,8 +41,15 @@ class UserProfileTable {
 		return this.tns.get(`SELECT * FROM Users WHERE id = ?`, [id]);
 	}
 
-	getAllWithUsername(username) {
-		return this.tns.all("SELECT * FROM Users WHERE username = ?", [username]);
+	getAllWithUsername(username, search = false) {
+		if (search) {
+			return this.tns.all(`SELECT id, username, picture FROM Users
+				INNER JOIN Profiles ON Profiles.userId = Users.id
+				INNER JOIN UserLevels ON UserLevels.userId = Users.id
+				WHERE username LIKE "${username}%" AND verified = 1;`);
+		} else {
+			return this.tns.all("SELECT * FROM Users WHERE username = ?", [username]);
+		}
 	}
 
 	changeUserPassword (id, newPassword) {
@@ -79,6 +85,10 @@ class UserProfileTable {
 		let params = [username, password, email];
 
 		this.tns.run(sql, params);
+	}
+
+	getFromUsername (username) {
+		return this.tns.get("SELECT * FROM Users WHERE username = ?", [username]);
 	}
 
 }

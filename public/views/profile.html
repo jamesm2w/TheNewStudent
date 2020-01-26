@@ -19,7 +19,7 @@
 							<i class="small material-icons red-text">build</i>
 							{{/if}}
 						</h2>
-						{{description}}<span class="badge" data-badge-caption="Points | Global Admin">{{points}}</span>
+						{{description}}<span class="badge" data-badge-caption="Points{{#if admin}} | Global Admin {{/if}}">{{points}}</span>
 					</span>
 				</div>
 				<div class="col s2">
@@ -32,7 +32,7 @@
 		<div class="card-panel grey lighten-5  center-align">
 			<div class="input-field">
 				<i class="material-icons prefix">textsms</i>
-				<input type="text" id="findUsername" class="autocomplete">
+				<input type="text" id="findUsername" class="autocomplete" oninput="{{fieldChange}}">
 				<label for="findUsername">Add Friend</label>
 			</div>
 			<a class="waves-effect waves-light btn blue" onclick="{{sendFriendRequest}}"><i class="material-icons right">send</i>Send Request</a>
@@ -41,10 +41,17 @@
 		<ul class="collection with-header">
 			<li class="collection-header"><h5>Friends List:</h5></li>
 			{{#each friends}}
-			<a class="collection-item avatar friend">
-				<img src="{{picture}}" alt="" class="circle">
-				<span class="title">{{username}} {{#if pending}}<span class="badge blue-text"><i>Pending</i>{{/if}}</span></span> 
-			</a>
+			<li class="collection-item avatar friend">
+				<img src="{{user.picture}}" alt="" class="circle">
+				<span class="title">{{user.username}} {{#if pending}}<span class="badge blue-text"><i>Pending</i></span>{{/if}}</span>
+				<span>
+					{{#if request}}
+					<a onclick="asm.profilePage.acceptFriendRequest('{{user.username}}')" class="waves-effect waves-lighten blue btn">Accept</a> <a onclick="asm.profilePage.removeFriendRequest('{{user.username}}')" class="waves-effect waves-lighten red btn">Reject</a>
+					{{else}}
+					<a onclick="asm.profilePage.removeFriendRequest('{{user.username}}')" class="red-text btn-flat">Remove Friend</a>
+					{{/if}}
+				</span>
+			</li>
 			{{/each}}
 		</ul>
 	</div>
@@ -81,7 +88,7 @@
 						<label for="changePicture">New Picture URL</label>
 					</div>
 
-					<button onclick="{{submitUserDetails}}" class="btn blue darken-1 white-text waves-effect waves-light">Submit</a>
+					<button onclick="{{submitUserDetails}}" class="btn blue darken-1 white-text waves-effect waves-light right">Submit</a>
 
 				</div>
 			</li>

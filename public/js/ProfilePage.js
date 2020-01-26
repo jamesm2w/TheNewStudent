@@ -14,6 +14,20 @@ class ProfilePage {
 		return true;
 	}
 
+	refreshPage () {
+		if (asm.currentPage == "profile") {
+			asm.profilePage.afterPageShow();
+		}
+	}
+
+	async fetchProfile () {
+		let profile = await Request.get("/profile?t=" + (new Date()).getTime()).execute();
+		let friends = await Request.get("/profile/friends?t=" + (new Date()).getTime()).execute();
+
+		this.stateManager.profile = profile.data;
+		this.stateManager.profile.friends = friends.data; 
+	}
+
 	userDetails () {
 
 		let description = $("#changeDescription")[0];
@@ -32,6 +46,7 @@ class ProfilePage {
 		result.then(data => {
 			if (data.success) {
 				this.stateManager.toast("Successfully Updated Details");
+				this.fetchProfile().then(this.refreshPage);
 			} else {
 				this.stateManager.toast(data.reason);
 			}
@@ -86,7 +101,8 @@ class ProfilePage {
 		let result = Request.post("/updateCredentials", newUserCredentials).execute();
 		result.then(data => {
 			if (data.success) {
-				this.stateManager.toast("Successfully Updated Credentials")
+				this.stateManager.toast("Successfully Updated Credentials");
+				this.fetchProfile().then(this.refreshPage);
 			} else {
 				this.stateManager.toast(data.reason);
 			}
@@ -102,7 +118,7 @@ class ProfilePage {
 		let autocompleteInstance = M.Autocomplete.getInstance(username);
 
 		try {
-			let result = await Request.get(`/username?username=${username.value}`).execute();
+			let result = await Request.get(`/username?username=${username.value}&search=true`).execute();
 
 			if (result.success) {
 
@@ -110,6 +126,10 @@ class ProfilePage {
 
 				for (var i = 0; i < result.data.length; i++) {
 					let currentEl = result.data[i];
+
+					if (currentEl.username == asm.profile.username) {
+						continue;
+					}
 
 					data[currentEl.username] = currentEl.picture;
 				}
@@ -134,6 +154,7 @@ class ProfilePage {
 
 			if (result.success) {
 				this.stateManager.toast("Friend Request Sent");
+				this.fetchProfile().then(this.refreshPage);
 			} else {
 				this.stateManager.toast(result.reason);
 			}
@@ -145,9 +166,42 @@ class ProfilePage {
 
 	}
 
+	async removeFriendRequest (user) {
+		try {
+
+			let data = await Request.get(`/friendRequest?username=${user}&reject=true&accept=false`).execute();
+			if (data.success) {
+				asm.toast("Rejected friend request from " + user);
+				this.fetchProfile().then(this.refreshPage);
+			} else {
+				asm.toast(data.reason);
+			}
+
+		} catch (e) {
+			console.log(e);
+			asm.toast("Error in server communication");
+		}
+	}
+
+	async acceptFriendRequest (user) {
+		try {
+			
+			let data = await Request.get(`/friendRequest?username=${user}&accept=true&reject=false`).execute();
+			if (data.success) {
+				asm.toast("Accepted friend request from " + user);
+				this.fetchProfile().then(this.refreshPage);
+			} else {
+				asm.toast(data.reason);
+			}
+
+		} catch (e) {
+			console.log(e);
+			asm.toast("Error in server communication");
+		}
+	}
 
 	afterPageShow () {
-		console.log("After page shown")
+
 		if (!this.stateManager.loggedIn) {
 			window.location.hash = "home";
 			return;
@@ -155,12 +209,14 @@ class ProfilePage {
 
 		if (typeof this.stateManager.profile == "undefined") {
 			this.stateManager.toast("Error fetching profile information, try again");
-			this.stateManager.fetchProfile(); // or something like this
+			this.stateManager.profilePage.fetchProfile();
+			//this.stateManager.profilePage.refreshPage();
+
 			window.location.hash = "home";
 			return;
 		}
 
-		let profile = JSON.parse(JSON.stringify(this.stateManager.profile.user));
+		let profile = JSON.parse(JSON.stringify(this.stateManager.profile));
 
 		profile.verified = profile.classLevel >= 1;
 		profile.moderator = profile.chatLevel >= 1;
@@ -171,19 +227,21 @@ class ProfilePage {
 		profile.sendFriendRequest = "asm.profilePage.sendFriendRequest()";
 		profile.fieldChange = "asm.profilePage.findUser()";
 
-		console.log(this);
-		console.log(this.userCredentials);
+		if (profile.friends) {
+			for (let i = 0; i < profile.friends.length; i++) {
+				let friend = profile.friends[i];
+
+				if (friend.verified == 0) {
+					friend.pending = true;
+				}
+			}
+		}
 
 		let jumbotronEl = Handlebars.compile(document.getElementById("profileJumbotron").innerHTML);
 
-		$("#profileRow")[0].innerHTML = jumbotronEl(profile) + $("#profileRow")[0].innerHTML;
+		$("#profileRow")[0].innerHTML = jumbotronEl(profile);
 		
 		M.AutoInit();
-
-		//$("#submitUserDetails")[0].addEventListener("click", this.userDetails);
-		//$("#submitUserCredentials")[0].addEventListener("click", this.userCredentials);
-
-
 	}
 
 	
