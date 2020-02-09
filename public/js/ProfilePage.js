@@ -241,8 +241,42 @@ class ProfilePage {
 
 		$("#profileRow")[0].innerHTML = jumbotronEl(profile);
 		
-		M.AutoInit();
+		this.stateManager.intialiseModules();
+		M.Collapsible.init($(".collapsible"), {});
+    	M.Autocomplete.init($(".autocomplete"), {limit: 10});
 	}
 
+	async showProfileModal (username) {
+		console.log(username);
+
+		if (username == asm.profile.username) {
+			M.Modal.getInstance($("#userProfileModal")[0]).close();
+			return;
+		}
+
+		try {
+			let data = await Request.get(`/profile/user/` + username, {}).execute();
+
+			if (data.success) {
+				let modal = M.Modal.getInstance($("#userProfileModal")[0]);
+
+				let userProfileModal = Handlebars.compile(document.getElementById("userProfileTemplate").innerHTML);
+
+				data.data.verified = data.data.classLevel >= 1;
+				data.data.moderator = data.data.chatLevel >= 1;
+				data.data.admin = data.data.adminLevel >= 1;
+
+				$("#userProfileModal")[0].innerHTML = userProfileModal(data.data);
+
+				modal.open();
+			} else {
+				throw data.reason;
+			}
+		} catch (err) {
+			console.log(err);
+			asm.toast("Error in server communication")
+		}
+		
+	}
 	
 }

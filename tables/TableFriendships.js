@@ -10,7 +10,7 @@ class FriendshipRelationships {
 				friendA INT NOT NULL REFERENCES Users (id) ON UPDATE CASCADE ON DELETE CASCADE,
 				friendB INT NOT NULL REFERENCES Users (id) ON UPDATE CASCADE ON DELETE CASCADE,
 				verified INT NOT NULL DEFAULT 0,
-				PRIMARY KEY (friendA, friendB) ON CONFLICT IGNORE
+				PRIMARY KEY (friendA, friendB) ON CONFLICT ABORT
 			);`);
 	}
 

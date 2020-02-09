@@ -5,7 +5,10 @@ const uuidv1 = require('uuid/v1')
 const app = express();
 const fs = require("fs");
 
-const TheNewStudent = require("./TheNewStudent.js");
+const wss = require("http").Server(app);
+const io = require("socket.io")(wss);
+
+const TheNewStudent = require("./TheNewStudent.js", io);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -16,7 +19,11 @@ app.use(express.static("node_modules/handlebars/dist"));
 const dbFile = __dirname + "/database.db";
 const sqlite3 = require("sqlite3").verbose();
 
-const TNS = new TheNewStudent(dbFile);
+const TNS = new TheNewStudent(dbFile, io);
+
+//wss.listen(3000, () => {
+//	console.log("WebSocketServer listening on *:3000");
+//})
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -301,6 +308,9 @@ app.get("/profile/friends", async (req, res) => {
 	let token = req.get("Security");
 	try {
 		let user = await TNS.TokensTable.getUser(token);
+
+		if (typeof user == "undefined") throw "User not found";
+
 		let friends = await TNS.FriendshipsTable.getFriendArray(user.id);
 
 		res.send(JSON.stringify({"success": true, "data": friends}));
@@ -311,6 +321,84 @@ app.get("/profile/friends", async (req, res) => {
 	}
 });
 
-var listener = app.listen(2020, () => {
+app.get("/profile/classes", async (req, res) => {
+	let token = req.get("Security");
+
+	try {
+		let user = await TNS.TokensTable.getUser(token);
+		let classes = await TNS.ClassMembershipTable.getUserClasses(user.id);
+
+		res.send(JSON.stringify({"success": true, "data": classes}));
+
+	} catch (err) {
+		console.log(err);
+		res.send(JSON.stringify({"success": false, "reason": err}));
+	}
+});
+
+app.get("/profile/user/:username", async (req, res) => {
+	let reqUser = req.params.username;
+
+	try {
+		let user = await TNS.get("SELECT * FROM UsersPublic WHERE username = ?", [reqUser]);
+		console.log(user);
+		let userFriends = await TNS.FriendshipsTable.getFriendArray(user.id);
+
+		user.friends = userFriends;
+
+		res.send(JSON.stringify({"success": true, "data": user}));
+	} catch (err) {
+		console.log(err);
+		res.send(JSON.stringify({"success": false, "reason": err}));
+	}
+});
+
+app.get("/classes", async (req, res) => {
+	let token = req.get("Security");
+
+	try {
+		let id = req.query.id;
+
+		let reqClass = await TNS.ClassesTable.getClass(id);
+		let members = await TNS.ClassMembershipTable.getClassMembers(id);
+
+		reqClass.members = members;
+
+		res.send(JSON.stringify({"success": true, "data": reqClass}))
+	} catch (e) {
+		console.log(e);
+		res.send(JSON.stringify({"success": false, "reason": e}));
+	}
+});
+
+app.post("/classes/new", async (req, res) => {
+
+	let classObj = req.body;
+
+	try {
+
+		let data = await TNS.ClassesTable.createClass(classObj.name, classObj.owner, classObj.ref);
+
+		if (data.lastID) {
+			let id = data.lastID;
+
+			if (classObj.description) {
+				await TNS.ClassesTable.setDescription(id, classObj.description);
+			}
+			if (classObj.picture) {
+				await TNS.ClassesTable.setPicture(id, classObj.picture);
+			}
+		}
+
+		res.send(JSON.stringify({"success": true}))
+		
+	} catch (err) {
+		res.send(JSON.stringify({"success": false, "reason": err}));
+		console.log(err);
+	}
+
+});
+
+var listener = wss.listen(2020, () => {
   console.log(`App is listening on port ${listener.address().port}`);
 });

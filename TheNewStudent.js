@@ -6,16 +6,25 @@ const TableUsers = require("./tables/TableUsers.js");
 const TableProfiles = require("./tables/TableProfiles.js");
 const TableUserLevel = require("./tables/TableUserLevel.js");
 const TableFriendships = require("./tables/TableFriendships.js");
+const TableClasses = require("./tables/TableClasses.js");
+const TableClassMembership = require("./tables/TableClassMembership.js");
+
+const ChatModule = require("./Chat.js");
 
 class TheNewStudent {
 	
-	constructor (dbFilePath) {
+	constructor (dbFilePath, io) {
 
 		this.TokensTable = new TableTokens(this);
 		this.UsersTable = new TableUsers(this);
 		this.ProfilesTable = new TableProfiles(this);
 		this.UserLevelTable = new TableUserLevel(this);
 		this.FriendshipsTable = new TableFriendships(this);
+		this.ClassesTable = new TableClasses(this);
+		this.ClassMembershipTable = new TableClassMembership(this);
+
+		this.Chat = new ChatModule();
+		io.of("/chat").on("connection", this.Chat.connection);
 
 		this.db = new sqlite3.Database(dbFilePath, async err => {
 			if (err) {
@@ -29,6 +38,8 @@ class TheNewStudent {
 				this.ProfilesTable.createTable();
 				this.UserLevelTable.createTable();
 				this.FriendshipsTable.createTable();
+				this.ClassesTable.createTable();
+				this.ClassMembershipTable.createTable();
 
 				await this.run(`CREATE VIEW IF NOT EXISTS UsersPublic AS
 				 SELECT id, username, ref, 
@@ -47,12 +58,13 @@ class TheNewStudent {
 					INNER JOIN UserLevels ON Users.id = UserLevels.userId;`)
 
 				console.log(await this.all(`SELECT * FROM UsersPrivate`));
-				console.log(await this.all(`SELECT * FROM Friendships`));
+				//console.log(await this.all(`SELECT * FROM Friendships`));
+				console.log(await this.all(`SELECT * FROM Tokens`));
 			}
 		});
 
 		this.transporter = nodemailer.createTransport({
-		    host: "smtp.ethereal.email",
+		    /*host: "smtp.ethereal.email",
 		    port: 587,
 		    auth: {
 		        user: "harry4@ethereal.email",
@@ -89,14 +101,14 @@ class TheNewStudent {
 
 	run (sql, params = []) {
 		return new Promise((resolve, reject) => {
-			this.db.run(sql, params, err => {
+			this.db.run(sql, params, function (err) {
 				if (err) {
 					console.log("Err running " + sql);
 					console.log(err);
 
 					reject(err);
 				} else {
-					resolve();
+					resolve(this);
 				}
 			});
 		});

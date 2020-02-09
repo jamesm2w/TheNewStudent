@@ -9,7 +9,7 @@ class UserProfile {
 		CREATE TABLE IF NOT EXISTS Profiles (
 			userId INT REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
 			picture TEXT NOT NULL DEFAULT "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
-			description TEXT NOT NULL DEFAULT "Hey there I am on TheNewStudent",
+			description VARCHAR(240) NOT NULL ON CONFLICT FAIL DEFAULT "Hey there I am on TheNewStudent",
 			points INT NOT NULL DEFAULT 0
 		)`;
 		this.tns.run(sql);

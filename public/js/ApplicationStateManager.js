@@ -14,6 +14,7 @@ class ApplicationStateManager {
 		this.currentPage = "home";
 
 		document.addEventListener("DOMContentLoaded", () => {
+			this.intialiseModules();
 			this.appStorage = new AppStorage();
 
 			if (this.appStorage.hasKey("token")) {
@@ -49,6 +50,8 @@ class ApplicationStateManager {
 
 		$("#profileImage")[0].setAttribute("src", this.profile.picture);
 		$("#tagLine")[0].innerText = "Logged In";
+
+		$("#quickChatButton")[0].classList.remove("hidden");
 	}
 
 	logOut () {
@@ -63,5 +66,16 @@ class ApplicationStateManager {
 		$("#loggedIn")[0].innerText = "Not Logged In";
 		$("#profileImage")[0].setAttribute("src", "");
 		$("#tagLine")[0].innerText = "---";
-	}	
+
+		$("#quickChatButton")[0].classList.add("hidden");
+	}
+
+	intialiseModules () {
+		M.FloatingActionButton.init($(".fixed-action-btn"), {hoverEnabled: false});
+		M.Sidenav.init($(".sidenav"), {});
+		M.Tabs.init($(".tabs"), {});
+		M.Dropdown.init($(".dropdown-trigger"), {});
+	    M.Modal.init($(".modal"), {});
+	    M.Datepicker.init($(".datepicker"), {format: "dd mmm yyyy", container: document.querySelector("body"), showClearBtn: true});
+	}
 }
