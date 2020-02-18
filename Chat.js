@@ -1,57 +1,117 @@
-const uuidv1 = require("uuid/v1");
+const uuidv3 = require("uuid/v3");
 const _ = require("lodash");
+
+const NAMESPACE = "a22c5f80-f140-497e-91eb-c62f5b648d19";
 
 class Chat {
 
-	constructor (tns) {
+	constructor (tns, io) {
 		this.tns = tns;
-		this.users = [];
+		this.io = io;
+
+		this.rooms = {};
+		this.messageCache = {};
 	}
 
 	async connection (user) {
+		console.log("Got Connection");
 
-		let clientUser = {"joined": false};
+		let clientUser = {"status": "offline"};
 
-		user.on("joinRequest", async (data, cb) => {
-
-			let sid = uuidv1();
-			let username = data.username;
-			let dbData = await this.tns.get("SELECT * FROM UsersPublic WHERE username = ?", [username]);
-			clientUser = {"sid": sid, "userData": dbData, "joined": true};
-
-			this.users.push(clientUser);
-			user.broadcast.emit("userJoin", clientUser);
-
-			console.log("[CHAT] " + username + " joined");
+		user.on("login", async (token, cb) => {
+			console.log(token);
+			try {
+				let userdata = await this.tns.TokensTable.getPublicUserFromToken(token);
+				Object.assign(clientUser, userdata);
+				clientUser.status = "online";
+				cb(true);
+			} catch (e) {
+				console.log(e);
+				cb(false, e);
+			}
 		});
 
-		user.on("sendMessage", (data, cb) => {
-			if (!clientUser.joined) {cb("Not Authenticated"); return;}
-			user.broadcast.emit("newMessage", {"message": data, "sender": clientUser});
-			cb();
-			console.log("[CHAT] new message");
+		user.on("messageDelete", (messageId, cb) => {
+			if (clientUser.status == "offline") {cb(false, "offline"); return;}
+
+
+			if (clientUser.chatLevel <= 0 && clientUser.adminLevel <= 0 &&
+				uuidv3(clientUser.username, NAMESPACE) != messageId.split("_")[0])
+				 {
+				 	cb(false, "permission"); return;
+				 }
+
+			user.broadcast.emit("messageDelete", messageId);
+			user.emit("messageDelete", messageId);
+
+			cb(true);
 		});
 
-		user.on("disconnect", reason => {
-			if (!clientUser.joined) {cb("Not Authenticated"); return;}
-			_.remove(this.users, clientUser);
-			user.broadcast.emit("userLeft", {"user": clientUser, "reason": reason});
-			console.log("[CHAT] " + clientUser.userData.username + " disconnected");
+		user.on("message", (messageData, cb) => {
+			console.log(clientUser);
+			if (clientUser.status == "offline") {cb(false); return;}
+
+			let rooms = Object.keys(user.rooms);
+
+			messageData.author = clientUser;
+			//console.log(messageData);
+			messageData.id = uuidv3(clientUser.username, NAMESPACE) + "_" + (new Date()).getTime().toString();
+			
+			for (let room of rooms) {
+				user.to(room).emit("message", messageData);
+			}
+
+			user.emit("message", messageData);
+
+			cb(true);
 		});
 
-		user.on("focusChat", (data, cb) => {
-			if (!clientUser.joined) {cb("Not Authenticated"); return;}
-			user.broadcast.emit("userFocussed", {"user": clientUser});
-			cb();
-			console.log("[CHAT] " + clientUser.userData.username + "  set focus");
+		user.on("switchActiveGroup", (newGroup, cb) => {
+			console.log(clientUser);
+			if (clientUser.status == "offline") {cb(false); return;}
+			console.log(user.id);
+
+			if (Object.keys(user.rooms).includes(newGroup)) {
+				cb(this.rooms[newGroup]);
+				return;
+			}
+
+			for (let room of Object.keys(user.rooms)) {
+				
+				if (room != user.id) {
+					console.log("- " + room);
+					user.leave(room);
+
+					_.remove(this.rooms[room], clientUser);
+					user.to(room).emit("userLeft", this.rooms[room]);
+				}
+			}
+			console.log("+ " + newGroup);
+			user.join(newGroup);
+			if (this.rooms[newGroup]) {
+				this.rooms[newGroup].push(clientUser)
+			} else {
+				this.rooms[newGroup] = [clientUser];
+			}
+			user.to(newGroup).emit("newUser", clientUser);
+
+			cb(this.rooms[newGroup]);
+		})
+
+		user.on("disconnect", (reason) => {
+			console.log("Disconnect " + reason);
+			user.broadcast.emit("userDisconnect", clientUser);
+			console.log(this.rooms);
+			for (let room of Object.keys(this.rooms)) {
+				let removed = _.remove(this.rooms[room], clientUser);
+
+				if (removed) {
+					user.to(room).emit("userLeft", this.rooms[room]);
+				}
+			}
 		});
 
-		user.on("deFocusChat", (data, cb) => {
-			if (!clientUser.joined) {cb("Not Authenticated"); return;}
-			user.broadcast.emit("userLostFocus", {"user": clientUser});
-			cb();
-			console.log("[CHAT] " + clientUser.userData.username + " lost focus");
-		});
+		
 	}
 
 }

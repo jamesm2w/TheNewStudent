@@ -9,6 +9,7 @@ class ApplicationStateManager {
 		this.homePage = new HomePage(this);
 		this.profilePage = new ProfilePage(this);
 		this.classPage = new ClassPage(this);
+		this.chatManager = new ChatClient(this);
 
 		this.pageRouter = this.createRouter();
 		this.currentPage = "home";
@@ -33,7 +34,7 @@ class ApplicationStateManager {
 			this.profilePage.route,
 			this.classPage.route,
 			new Route("questions", "questions.html"),
-			new Route("chat", "chat.html")
+			this.chatManager.route
 		], this);
 	}
 
@@ -52,6 +53,10 @@ class ApplicationStateManager {
 		$("#tagLine")[0].innerText = "Logged In";
 
 		$("#quickChatButton")[0].classList.remove("hidden");
+
+		setTimeout(() => {
+			this.chatManager.login();
+		}, 100);
 	}
 
 	logOut () {
@@ -61,6 +66,8 @@ class ApplicationStateManager {
 		Request.securityToken = this.appStorage
 		
 		window.location.hash = "";
+
+		this.chatManager.logout();
 
 		M.toast({html: "Successfully Logged Out"});
 		$("#loggedIn")[0].innerText = "Not Logged In";

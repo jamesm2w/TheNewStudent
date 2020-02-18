@@ -1,1 +1,102 @@
-<h6>chat.html</h6>
+<div class="chatContainer">
+
+	<ul class="grey lighten-4 z-depth-2 groupList">
+		<li class="center-align" style="font-weight: 300; line-height: 30px; margin-bottom: 3px;">GROUPS</li>
+
+		<div id="groupsList">
+			<li group-ref="" class="center-align activeGroup" style="padding-top: 3px;">
+				<img class="circle hoverable" width="75px" src="https://via.placeholder.com/150">
+			</li>
+			<li class="center-align" style="padding-top: 3px;">
+				<img class="circle hoverable" width="75px" src="https://via.placeholder.com/150">
+			</li>	
+		</div>
+	</ul>
+	<div style="flex-basis: 75%; flex-grow: 1; flex-shrink: 1;" class="blue-grey lighten-1">
+		
+		<div id="chatContainer" class="" style="height: 85%; overflow-y: scroll; padding-left: 15%; padding-right: 15%;">
+			
+			
+
+		</div>
+		<div class="grey lighten-3 row" style="height: 15%; padding: 2px; margin: 0;">
+			<div class="file-field input-field col s4">
+				<div class="btn blue darken-2">
+					<span>Upload</span>
+					<input id="messageFile" type="file">
+				</div>
+				<div class="file-path-wrapper">
+					<input id="messageFileEcho" class="file-path validate" type="text" placeholder="Upload a file">
+				</div>
+			</div>
+			<div class="input-field col s6">
+				<input id="messageBox" type="text">
+				<label for="messageBox">Message</label>
+			</div>
+
+			<div class="input-field col s2">
+				<a id="submitMessage" class="waves-effect waves-light btn-large blue darken-2"><i class="material-icons">send</i></a>	
+			</div>
+		</div>
+	</div>
+	<div style="flex-basis: 15%; flex-grow: 0; flex-shrink: 0; margin:0;" class="z-depth-2">
+		<span class="center-align" style="font-weight: 300; display: block; line-height: 30px;">MEMBERS</span>
+		<div id="channelMembers">
+			<span class="center-align" style="font-weight: 700; display: block; margin: 2%;">jamesm2w</span>
+			<span class="center-align" style="font-weight: 700; display: block; margin: 2%;">jamesm2w</span>
+			<span class="center-align" style="font-weight: 700; display: block; margin: 2%;">jamesm2w</span>
+			<span class="center-align" style="font-weight: 700; display: block; margin: 2%;">jamesm2w</span>	
+		</div>
+		
+	</div>
+</div>
+
+<script id="groupHTML" type="text/x-handlebars-template">
+	{{#each data}}
+	<li group-ref="{{groupID}}" onclick="asm.chatManager.switchActiveGroup('{{groupID}}')" class="center-align tooltipped" style="padding-top: 3px;" data-position="right" data-tooltip="{{name}}">
+		<img class="circle hoverable" width="75px" height="75px" src="{{groupPicture}}">
+	</li>
+	{{/each}}
+</script>
+
+<script id="memberHTML" type="text/x-handlebars-template">
+	<span onclick="asm.profilePage.showProfileModal('{{username}}');" class="center-align valign-wrapper" style="font-weight: 700; display: block; margin: 2%;"><img src="{{picture}}" class="circle" height="20px"></img> {{username}}</span>
+</script>
+
+<script id="messageHTML" type="text/x-handlebars-template">
+	<div class="card-panel grey lighten-2" id="message{{id}}">
+		<span class="valign-wrapper" style="width: 100%;">
+			<img src="{{author.picture}}" class="circle" height="20px"></img>
+			<span style="font-weight: 700;" onclick="asm.profilePage.showProfileModal('{{author.username}}');">{{author.username}} 
+				{{#if verified}}
+				<i class="tiny material-icons blue-text">verified_user</i>
+				{{/if}}
+				{{#if moderator}}
+				<i class="tiny material-icons green-text">shield</i>
+				{{/if}}
+				{{#if admin}}
+				<i class="tiny material-icons red-text">build</i>
+				{{/if}}
+			:&nbsp;</span>  
+			{{text}}
+			{{#if attachment}}
+			<a href="{{attachment}}" target="_blank" style="position: relative; float: right; right: 0;" class="btn-flat waves-effect"><i class="material-icons blue-text medium">attach_file</i></a>
+			{{/if}}
+			<a class="dropdown-trigger btn-flat waves-effect" style="position: relative; float: right; right: 0;" 
+		 data-target="moreOptions{{id}}"><i class="material-icons">more_vert</i></a>
+		</span>
+
+		<ul id="moreOptions{{id}}" class="dropdown-content">
+			<li><a onclick="navigator.clipboard.writeText('{{text}}');asm.toast('Copied to clipboard');">Copy Text</a></li>
+			<li><a onclick="$('#messageBox')[0].value = `'{{text}}' `;M.updateTextFields();">Quote</a></li>
+			{{#if attachment}}
+			<li class="divider" tabindex="-1"></li>
+			<li><a href="{{attachment}}" target="_blank">Download Attachment</a></li>
+			{{/if}}
+			{{#if canBeDeleted}}
+			<li class="divider" tabindex="-1"></li>
+			<li><a onclick="asm.chatManager.deleteMessage('{{id}}')"><i class="material-icons">delete_forever</i></a></li>
+			{{/if}}
+		</ul>
+	</div>
+</script>

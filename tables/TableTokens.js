@@ -12,7 +12,7 @@ class TokenTable {
 			token TEXT,
 			userId INT UNIQUE ON CONFLICT REPLACE,
 			expiry INT,
-			FOREIGN KEY (userId) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+			FOREIGN KEY (userId) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE
 		);`;
 		await this.tns.run(sql);
 	}
@@ -51,6 +51,13 @@ class TokenTable {
 		}
 
 		return t;
+	}
+
+	async getPublicUserFromToken (token) {
+		let user = await this.getUser(token);
+		if (!user) throw "Can't find profile. Try again.";
+		
+		return await this.tns.get("SELECT * FROM UsersPublic WHERE username = ?", [user.username]);
 	}
 
 	async deleteToken (token) {

@@ -353,6 +353,25 @@ app.get("/profile/user/:username", async (req, res) => {
 	}
 });
 
+app.get("/profile/groups", async (req, res) => {
+	res.send(JSON.stringify(
+		{"data": 
+			[
+				{
+					"groupID": "1", 
+					"name": "testers", 
+					"groupPicture": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/NASA_logo.svg/1200px-NASA_logo.svg.png"
+				},
+				{
+					"groupID": "2",
+					"name": "testers2",
+					"groupPicture": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/ESA_logo_simple.svg/1200px-ESA_logo_simple.svg.png"
+				}
+			]
+		}
+	));
+});
+
 app.get("/classes", async (req, res) => {
 	let token = req.get("Security");
 

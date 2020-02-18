@@ -23,8 +23,11 @@ class TheNewStudent {
 		this.ClassesTable = new TableClasses(this);
 		this.ClassMembershipTable = new TableClassMembership(this);
 
-		this.Chat = new ChatModule();
-		io.of("/chat").on("connection", this.Chat.connection);
+		this.Chat = new ChatModule(this);
+		
+		io.of("/chat").on("connection", user => {
+			this.Chat.connection(user);
+		});
 
 		this.db = new sqlite3.Database(dbFilePath, async err => {
 			if (err) {

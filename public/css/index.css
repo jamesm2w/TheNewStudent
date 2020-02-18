@@ -8,6 +8,10 @@ a {
 	cursor: pointer;
 }
 
+#userProfileModal {
+	overflow-y: hidden;
+}
+
 @media only screen and (max-width : 992px) {
 	body {
 		padding-left: 0;
@@ -17,3 +21,27 @@ a {
 .hidden {
 	display: none !important;
 }
+
+.activeGroup {
+	background-color: #e0e0e0 !important;
+}
+
+.groupList {
+	list-style-type: none; 
+	flex-basis: 10%; 
+	flex-grow: 0; 
+	flex-shrink: 0; 
+	overflow-y: scroll; 
+	margin: 0; 
+	padding-top: 3px;
+}
+
+.chatContainer {
+	display: flex; 
+	flex-direction: row; 
+	flex-wrap: nowrap; 
+	justify-content: left; 
+	align-items: stretch; 
+	height: calc(100vh - 64px);
+}
+
