@@ -18,15 +18,62 @@ a {
 	}
 }
 
-.hidden {
-	display: none !important;
+@media only screen and (max-width: 992px) {
+	#groupList {
+		height: calc(100vh - 64px); /* 100% Full-height */
+		width: 0; /* 0 width - change this with JavaScript */
+		position: fixed; /* Stay in place */
+		z-index: 990; /* Stay on top */
+		bottom: 0; /* Stay at the top */
+		left: 0;
+		overflow-x: hidden; /* Disable horizontal scroll */
+		padding-top: 10px; /* Place content 60px from the top */
+		transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+		list-style-type: none;
+		margin: 0;
+	}
+
+	#groupList.active {
+		width: 50vw;
+	}
+
+	#membersList {
+		height: calc(100vh - 64px);
+		width: 0; 
+		position: fixed; 
+		z-index: 990;
+		bottom: 0; 
+		right: 0;
+		overflow-x: hidden; 
+		padding-top: 10px; 
+		transition: 0.5s; 
+		margin: 0;
+	}
+
+	#membersList.active {
+		width: 50vw;
+	}
 }
 
-.activeGroup {
-	background-color: #e0e0e0 !important;
+@media only screen and (max-width: 600px) {
+	#groupList {
+		height: calc(100vh - 56px);
+	}
+
+	#groupList.active {
+		width: 60vh;
+	}
+
+	#membersList {
+		height: calc(100vh - 56px);
+	}
+
+	#membersList.active {
+		width: 60vh;
+	}
 }
 
-.groupList {
+#groupList {
 	list-style-type: none; 
 	flex-basis: 10%; 
 	flex-grow: 0; 
@@ -36,6 +83,20 @@ a {
 	padding-top: 3px;
 }
 
+#membersList {
+	flex-basis: 15%; flex-grow: 0; flex-shrink: 0; margin:0; order: 3;
+}
+
+.hidden {
+	display: none !important;
+}
+
+.activeGroup {
+	background-color: #e0e0e0 !important;
+}
+
+
+
 .chatContainer {
 	display: flex; 
 	flex-direction: row; 
@@ -44,4 +105,29 @@ a {
 	align-items: stretch; 
 	height: calc(100vh - 64px);
 }
+
+.clickable {
+	cursor: pointer;
+}
+
+.member {
+	font-weight: 700; display: block; margin: 2%;
+}
+
+.group {
+	padding-top: 3px;
+	padding-left: 5%;
+}
+
+.groupPicture {
+	display: block;
+	width: 75px;
+	height: 75px;
+	object-fit: cover;
+}
+
+#chatContainer {
+	height: 85%; overflow-y: scroll; padding-left: 15%; padding-right: 15%;
+}
+
 

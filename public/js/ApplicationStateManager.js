@@ -85,4 +85,9 @@ class ApplicationStateManager {
 	    M.Modal.init($(".modal"), {});
 	    M.Datepicker.init($(".datepicker"), {format: "dd mmm yyyy", container: document.querySelector("body"), showClearBtn: true});
 	}
+
+	switchPage () {
+		$("#navChatButton")[0].classList.add("hidden");
+		$("#navMemberButton")[0].classList.add("hidden");
+	}
 }

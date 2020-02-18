@@ -142,6 +142,8 @@ class ChatClient {
 		M.Dropdown.init($(".dropdown-trigger"), {
 			constrainWidth: false
 		});
+
+		$("#chatContainer")[0].scrollTop = $("#chatContainer")[0].scrollHeight;
 	}
 
 	submitMessage () {
@@ -201,12 +203,24 @@ class ChatClient {
 
 		this.stateManager.chatManager.socket.emit("focusChat", true);
 		this.stateManager.chatManager.onlineStatus = "online";
+
+		$("#navChatButton")[0].addEventListener("click", e => {
+			document.getElementById("groupList").classList.toggle("active");
+		});
+
+		$("#navChatButton")[0].classList.remove("hidden");
+		$("#navMemberButton")[0].classList.remove("hidden");
+
+		$("#navMemberButton")[0].addEventListener("click", e => {
+			document.getElementById("membersList").classList.toggle("active");
+		});		
+		
 		// Get User Groups & switch to first one
 		try {
 			let result = await Request.get("/profile/groups?t=" + (new Date()).getTime()).execute();
 
 			let groupHTML = Handlebars.compile($("#groupHTML")[0].innerHTML);
-			$("#groupsList")[0].innerHTML = groupHTML(result);
+			$("#chatGroupList")[0].innerHTML = groupHTML(result);
 			this.stateManager.chatManager.switchActiveGroup(result.data[0].groupID);
 
 			M.Tooltip.init($(".tooltipped"), {});

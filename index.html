@@ -91,8 +91,17 @@
 		<!-- Navbar and Sidenav -->
 		<nav class="blue-grey darken-3">
 			<div class="nav-wrapper">
-				<a href="#home" class="brand-logo center">The New Student</a>
+				<a href="#home" class="brand-logo center hide-on-small-only">The New Student</a>
+				<a href="#home" class="brand-logo center show-on-small hide-on-med-and-up">TNS</a>
 				<a data-target="fixedNav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+				
+				<ul class="left hide-on-large-only">
+					<li><a class="hidden" id="navChatButton"><i class="material-icons">chat_bubble</i></a></li>
+				</ul>
+				<ul class="right hide-on-large-only">
+					<li><a class="hidden" id="navMemberButton"><i class="material-icons">people</i></a></li>
+				</ul>
+				
 			</div>
 		</nav>
 				
@@ -109,11 +118,11 @@
 					<a href="#profile"><span id="tagLine" class="white-text email">--</span></a>
 				</div>
 			</li>
-			<li><a href="#"><i class="material-icons">home</i>Homepage</a></li>
-			<li><a href="#profile"><i class="material-icons">account_circle</i>Profile</a></li>
-			<li><a href="#class"><i class="material-icons">people</i>Class</a></li>
-			<li><a href="#questions"><i class="material-icons">spellcheck</i>Answer Questions</a></li>
-			<li><a href="#chat"><i class="material-icons">forum</i>Chat <span class="new badge red">4</span></a></li>
+			<li><a href="#" class="sidenav-close"><i class="material-icons">home</i>Homepage</a></li>
+			<li><a href="#profile" class="sidenav-close"><i class="material-icons">account_circle</i>Profile</a></li>
+			<li><a href="#class" class="sidenav-close"><i class="material-icons">people</i>Class</a></li>
+			<li><a href="#questions" class="sidenav-close"><i class="material-icons">spellcheck</i>Answer Questions</a></li>
+			<li><a href="#chat" class="sidenav-close"><i class="material-icons">forum</i>Chat <span class="new badge red">4</span></a></li>
 			<li><div class="divider"></div></li>
 		</ul>
 		
