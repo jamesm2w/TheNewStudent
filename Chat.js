@@ -9,8 +9,12 @@ class Chat {
 		this.tns = tns;
 		this.io = io;
 
-		this.rooms = {};
-		this.messageCache = {};
+		this.rooms = {
+			// "roomId": [userList]
+		};
+		this.messageCache = {
+			// "roomId": [messageList]
+		};
 	}
 
 	async connection (user) {
@@ -44,6 +48,14 @@ class Chat {
 			user.broadcast.emit("messageDelete", messageId);
 			user.emit("messageDelete", messageId);
 
+			for (let key in this.messageCache) {
+				for (let msg of this.messageCache[key]) {
+					if (msg.id === messageId) {
+						_.remove(this.messageCache[key], msg);
+					}
+				}
+			}
+
 			cb(true);
 		});
 
@@ -52,13 +64,28 @@ class Chat {
 			if (clientUser.status == "offline") {cb(false); return;}
 
 			let rooms = Object.keys(user.rooms);
-
+			console.log(rooms);
 			messageData.author = clientUser;
 			//console.log(messageData);
 			messageData.id = uuidv3(clientUser.username, NAMESPACE) + "_" + (new Date()).getTime().toString();
 			
 			for (let room of rooms) {
 				user.to(room).emit("message", messageData);
+
+				if (room != user.id) {
+
+					if (this.messageCache[room]) {
+						this.messageCache[room].push(messageData);
+
+						if (this.messageCache[room].length > 10) {
+							this.messageCache[room].shift();
+						}
+
+					} else {
+						this.messageCache[room] = [messageData];
+					}
+
+				}
 			}
 
 			user.emit("message", messageData);
@@ -95,7 +122,7 @@ class Chat {
 			}
 			user.to(newGroup).emit("newUser", clientUser);
 
-			cb(this.rooms[newGroup]);
+			cb(this.rooms[newGroup], this.messageCache[newGroup]);
 		})
 
 		user.on("disconnect", (reason) => {

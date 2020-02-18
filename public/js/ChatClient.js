@@ -7,9 +7,6 @@ class ChatClient {
 
 		this.onlineStatus = "offline";
 		this.currentChatGroup = ""; // ID of a group 
-		this.unseenMessagesInGroup = []; // List of groups IDs
-
-		this.savedMessages = [];
 
 		this.bindSocketEvents();
 	}
@@ -20,7 +17,21 @@ class ChatClient {
 		this.socket.on("userLeft", ChatClient.userLeft);
 
 		this.socket.on("messageDelete", ChatClient.deleteMessage);
-		this.socket.on("")
+		
+		this.socket.on("reconnect", (attempts) => {
+			console.log("Reconnected with server after" + attempts + " tries");
+			console.log("Attempting to log in again");
+			this.login();
+		});
+		
+		this.socket.on("disconnect", (reason) => {
+			console.log("Disconnected from chat server. reason: " + reason);
+			this.stateManager.toast("Disconnected from chat. Trying to reconnect.");
+			if (reason === "io server disconnect") {
+				// disconnect was called for by server :o
+				this.socket.connect();
+			}
+		});
 	}
 
 	login () {
@@ -52,13 +63,22 @@ class ChatClient {
 	switchActiveGroup (newGroupId) {
 		this.currentChatGroup = newGroupId;
 
-		this.socket.emit("switchActiveGroup", newGroupId, (result) => {
+		this.socket.emit("switchActiveGroup", newGroupId, (result, messages) => {
 			$("#channelMembers")[0].innerHTML = "";
 			console.log(result); // should contain the members and messages
 			let memberFunc = Handlebars.compile($("#memberHTML")[0].innerHTML);
 			for (let member of result) {
 				$("#channelMembers")[0].innerHTML += memberFunc(member);
 			}
+
+			if (messages) {
+				console.log(messages); // should be the last 10 or so messages in the room
+				$("#chatContainer")[0].innerHTML = "";
+				for (let message of messages) {
+					ChatClient.onMessage(message);
+				}
+			}
+			
 		});
 
 		// Set display of thing to thing
