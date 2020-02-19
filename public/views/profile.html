@@ -10,13 +10,15 @@
 					<span class="black-text">
 						<h2>{{username}} 
 							{{#if verified}} 
-							<i class="small material-icons blue-text">verified_user</i>
+							<i class="small material-icons blue-text tooltipped" data-position="top" data-tooltip="Teacher">verified_user</i>
 							{{/if}}
 							{{#if moderator}}
-							<i class="small material-icons green-text">shield</i>
+							<i class="small material-icons green-text tooltipped" data-position="top"
+							data-tooltip="Moderator">shield</i>
 							{{/if}}
 							{{#if admin}}
-							<i class="small material-icons red-text">build</i>
+							<i class="small material-icons red-text tooltipped" data-position="top" 
+							data-tooltip="Admin">build</i>
 							{{/if}}
 						</h2>
 						{{description}}<span class="badge" data-badge-caption="Points{{#if admin}} | Global Admin {{/if}}">{{points}}</span>

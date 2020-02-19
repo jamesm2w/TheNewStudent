@@ -221,7 +221,7 @@ class ChatClient {
 
 			let groupHTML = Handlebars.compile($("#groupHTML")[0].innerHTML);
 			$("#chatGroupList")[0].innerHTML = groupHTML(result);
-			this.stateManager.chatManager.switchActiveGroup(result.data[0].groupID);
+			this.stateManager.chatManager.switchActiveGroup(result.data[0].classId);
 
 			M.Tooltip.init($(".tooltipped"), {});
 		

@@ -60,9 +60,12 @@ class TheNewStudent {
 					INNER JOIN Profiles ON Users.id = Profiles.userId
 					INNER JOIN UserLevels ON Users.id = UserLevels.userId;`)
 
-				console.log(await this.all(`SELECT * FROM UsersPrivate`));
+				console.log(await this.all(`SELECT * FROM UsersPublic;`));
 				//console.log(await this.all(`SELECT * FROM Friendships`));
-				console.log(await this.all(`SELECT * FROM Tokens`));
+				console.log(await this.all(`SELECT * FROM Classes;`));
+				console.log(await this.all(`SELECT * FROM ClassMembership;`));
+				console.log("User '1' classes:")
+				console.log(await this.ClassMembershipTable.getUserClasses("1"));
 			}
 		});
 

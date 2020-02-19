@@ -18,12 +18,12 @@ class Chat {
 	}
 
 	async connection (user) {
-		console.log("Got Connection");
+		console.log("[CHAT] Got Connection from " + user.id);
 
 		let clientUser = {"status": "offline"};
 
 		user.on("login", async (token, cb) => {
-			console.log(token);
+			//console.log(token);
 			try {
 				let userdata = await this.tns.TokensTable.getPublicUserFromToken(token);
 				Object.assign(clientUser, userdata);
@@ -60,11 +60,11 @@ class Chat {
 		});
 
 		user.on("message", (messageData, cb) => {
-			console.log(clientUser);
+			//console.log(clientUser);
 			if (clientUser.status == "offline") {cb(false); return;}
 
 			let rooms = Object.keys(user.rooms);
-			console.log(rooms);
+			//console.log(rooms);
 			messageData.author = clientUser;
 			//console.log(messageData);
 			messageData.id = uuidv3(clientUser.username, NAMESPACE) + "_" + (new Date()).getTime().toString();
@@ -94,9 +94,9 @@ class Chat {
 		});
 
 		user.on("switchActiveGroup", (newGroup, cb) => {
-			console.log(clientUser);
+			//console.log(clientUser);
 			if (clientUser.status == "offline") {cb(false); return;}
-			console.log(user.id);
+			//console.log(user.id);
 
 			if (Object.keys(user.rooms).includes(newGroup)) {
 				cb(this.rooms[newGroup]);
@@ -106,14 +106,14 @@ class Chat {
 			for (let room of Object.keys(user.rooms)) {
 				
 				if (room != user.id) {
-					console.log("- " + room);
+					console.log("[CHAT] - " + room);
 					user.leave(room);
 
 					_.remove(this.rooms[room], clientUser);
 					user.to(room).emit("userLeft", this.rooms[room]);
 				}
 			}
-			console.log("+ " + newGroup);
+			console.log("[CHAT] + " + newGroup);
 			user.join(newGroup);
 			if (this.rooms[newGroup]) {
 				this.rooms[newGroup].push(clientUser)
@@ -126,9 +126,9 @@ class Chat {
 		})
 
 		user.on("disconnect", (reason) => {
-			console.log("Disconnect " + reason);
+			console.log("[CHAT] Disconnect " + reason);
 			user.broadcast.emit("userDisconnect", clientUser);
-			console.log(this.rooms);
+			//console.log(this.rooms);
 			for (let room of Object.keys(this.rooms)) {
 				let removed = _.remove(this.rooms[room], clientUser);
 

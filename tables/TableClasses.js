@@ -6,7 +6,7 @@ class ClassTable {
 
 	createTable () {
 		this.tns.run(`CREATE TABLE IF NOT EXISTS Classes (
-			id INT PRIMARY KEY AUTOINCREMENT,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL DEFAULT "New Class",
 			picture TEXT,
 			owner INT REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -17,8 +17,8 @@ class ClassTable {
 	}
 
 	createClass (name, owner, ref) {
-		return this.tns.run("INSERT INTO Classes (name, owner, created, ref) VALUES (?, ?, ?, ?)",
-		 [name, owner, (new Date()).getTime(), ref]);
+		return this.tns.run("INSERT INTO Classes (name, owner, created, reference) VALUES (?, ?, ?, ?)",
+		 [name, owner, (new Date()).getTime().toString(), ref]);
 	}
 
 	setPicture (id, pic) {
@@ -38,11 +38,20 @@ class ClassTable {
 	}
 
 	deleteClass (id) {
+		this.tns.run("DELETE FROM ClassMembership WHERE classId = ?", [id]);
 		return this.tns.run("DELETE FROM Classes WHERE id = ?", [id]);
 	}
 
 	getClass (id) {
-		return this.tns.get("SELECT * FROM Classes WHERE id = ?", [id]);
+		return this.tns.get(`SELECT 
+		Classes.id, name, Classes.description, Classes.picture, created, 
+		reference, UsersPublic.username AS ownerUsername, 
+		UsersPublic.picture AS ownerPicture FROM Classes 
+		INNER JOIN UsersPublic ON UsersPublic.id = Classes.owner WHERE Classes.id = ?`, [id]);
+	}
+
+	getClassFromToken (ref) {
+		return this.tns.all("SELECT * FROM Classes WHERE reference = ?", [ref]);
 	}
 }
 

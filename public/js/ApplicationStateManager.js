@@ -82,12 +82,14 @@ class ApplicationStateManager {
 		M.Sidenav.init($(".sidenav"), {});
 		M.Tabs.init($(".tabs"), {});
 		M.Dropdown.init($(".dropdown-trigger"), {});
-	    M.Modal.init($(".modal"), {});
-	    M.Datepicker.init($(".datepicker"), {format: "dd mmm yyyy", container: document.querySelector("body"), showClearBtn: true});
+		M.Modal.init($(".modal"), {});
+		M.Datepicker.init($(".datepicker"), {format: "dd mmm yyyy", container: document.querySelector("body"), showClearBtn: true});
+		M.Tooltip.init($(".tooltipped"), {});
 	}
 
 	switchPage () {
 		$("#navChatButton")[0].classList.add("hidden");
 		$("#navMemberButton")[0].classList.add("hidden");
+		$("#extraNavbar")[0].innerHTML = "";
 	}
 }

@@ -32,19 +32,29 @@ app.get("/", (req, res) => {
 app.post("/register", async (req, res) => {
 	let obj = req.body;
 	obj.password = crypto.createHash('md5').update(obj.password).digest('hex');
-	console.log(obj);
+	//console.log(obj);
 
 	try {
 		await TNS.UsersTable.registerUser(obj.username, obj.password, obj.email, obj.dob, obj.regToken);
 
 		let user = await TNS.get("SELECT * FROM Users WHERE username = ? AND password = ?", [obj.username, obj.password]);
+		console.log("[REG] New Reg: ")	
 		console.log(user);
 		let token = await TNS.TokensTable.createToken(user.id);
-
 
 		// Create Profile and User Levels
 		await TNS.ProfilesTable.createProfile(user.id);
 		await TNS.UserLevelTable.createUserLevels(user.id);
+
+		try {
+			let classesToJoin = await TNS.ClassesTable.getClassFromToken(obj.regToken);
+			for (let classX of classesToJoin) {
+				console.log("[REG][CLASS] " + user.id + " joining " + classX.id);
+				await TNS.ClassMembershipTable.createMembership(classX.id, user.id);
+			}
+		} catch (err) {
+			console.log(err);
+		}
 
 		console.log(token);
 		// Email and stuff
@@ -120,6 +130,7 @@ app.post("/authenticate", async (req, res) => {
 
 	req.body.password = crypto.createHash('md5').update(req.body.password).digest('hex');
 
+	console.log("[LOGIN] Login Recv: ")
 	console.log(req.body);
 
 	try {
@@ -148,6 +159,7 @@ app.post("/authenticate", async (req, res) => {
 });
 
 app.get("/authenticate", async (req, res) => {
+	console.log("[LOGIN] Authenticate Recv: ")
 	console.log(req.query);
 
 	try {
@@ -219,6 +231,17 @@ app.post("/updateCredentials", async (req, res) => {
 
 		if (newDetails.token) {
 			TNS.UsersTable.changeUserToken(userId.id, newDetails.token);
+
+			try {
+				let classesToJoin = await TNS.ClassesTable.getClassFromToken(newDetails.token);
+				for (let classX of classesToJoin) {
+					console.log("[PROFILE][CLASS] " + userId.id + " joining " + classX.id);
+					await TNS.ClassMembershipTable.createMembership(classX.id, userId.id);
+				}
+			} catch (err) {
+				console.log(err);
+			}
+
 		}
 
 		var message = {
@@ -321,21 +344,6 @@ app.get("/profile/friends", async (req, res) => {
 	}
 });
 
-app.get("/profile/classes", async (req, res) => {
-	let token = req.get("Security");
-
-	try {
-		let user = await TNS.TokensTable.getUser(token);
-		let classes = await TNS.ClassMembershipTable.getUserClasses(user.id);
-
-		res.send(JSON.stringify({"success": true, "data": classes}));
-
-	} catch (err) {
-		console.log(err);
-		res.send(JSON.stringify({"success": false, "reason": err}));
-	}
-});
-
 app.get("/profile/user/:username", async (req, res) => {
 	let reqUser = req.params.username;
 
@@ -354,22 +362,18 @@ app.get("/profile/user/:username", async (req, res) => {
 });
 
 app.get("/profile/groups", async (req, res) => {
-	res.send(JSON.stringify(
-		{"data": 
-			[
-				{
-					"groupID": "1", 
-					"name": "testers", 
-					"groupPicture": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/NASA_logo.svg/1200px-NASA_logo.svg.png"
-				},
-				{
-					"groupID": "2",
-					"name": "testers2",
-					"groupPicture": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/ESA_logo_simple.svg/1200px-ESA_logo_simple.svg.png"
-				}
-			]
-		}
-	));
+	let token = req.get("Security");
+
+	try {
+		let user = await TNS.TokensTable.getUser(token);
+		let classes = await TNS.ClassMembershipTable.getUserClasses(user.id);
+
+		res.send(JSON.stringify({"success": true, "data": classes}));
+
+	} catch (err) {
+		console.log(err);
+		res.send(JSON.stringify({"success": false, "reason": err}));
+	}
 });
 
 app.get("/classes", async (req, res) => {
@@ -392,14 +396,17 @@ app.get("/classes", async (req, res) => {
 
 app.post("/classes/new", async (req, res) => {
 
-	let classObj = req.body;
-
+	let classObj = req.body; 
+	console.log("[CLASS] Create")
+	console.log(classObj);
 	try {
 
 		let data = await TNS.ClassesTable.createClass(classObj.name, classObj.owner, classObj.ref);
-
+		//console.log(data);
 		if (data.lastID) {
 			let id = data.lastID;
+
+			await TNS.ClassMembershipTable.createMembership(id, classObj.owner, 1);
 
 			if (classObj.description) {
 				await TNS.ClassesTable.setDescription(id, classObj.description);
@@ -409,7 +416,7 @@ app.post("/classes/new", async (req, res) => {
 			}
 		}
 
-		res.send(JSON.stringify({"success": true}))
+		res.send(JSON.stringify({"success": true}));
 		
 	} catch (err) {
 		res.send(JSON.stringify({"success": false, "reason": err}));
@@ -417,6 +424,83 @@ app.post("/classes/new", async (req, res) => {
 	}
 
 });
+
+app.get("/classes/:id/kick", async (req, res) => {
+	let classId = req.params.id;
+	let userId = req.query.id;
+	let token = req.get("Security");
+
+	try {
+
+		let authUser = await TNS.TokensTable.getUser(token);
+		let userClassRelationship = await TNS.ClassMembershipTable.getUserClassRelationship(classId, authUser.id);
+
+		if ((authUser.classLevel > 0 || authUser.adminLevel > 0) && userClassRelationship.level > 0) {
+			await TNS.ClassMembershipTable.removeUserMembership(classId, userId);
+			console.log("[CLASS] User[" + authUser.id + "] kicking User[" + userId + "] from Class[" + classId + "]")
+			res.send(JSON.stringify({"success": true}));
+		} else {
+			throw "Missing Permissions";
+		}
+
+	} catch (err) {
+		res.send(JSON.stringify({"success": false, "reason": err}));
+		console.log("[CLASS][ERR]")
+		console.log(err);
+	}
+});
+
+app.post("/classes/:id/edit", async (req, res) => {
+	let id = req.params.id;
+	let newDetails = req.body;
+	let token = req.get("Security");
+
+	console.log("[CLASS] Edit Class[" + id + "]");
+	console.log(newDetails);
+
+	try {
+
+		let user = await TNS.TokensTable.getUser(token);
+
+		if (newDetails.description) {
+			await TNS.ClassesTable.setDescription(id, newDetails.description);
+		} 
+
+		if (newDetails.picture) {
+			await TNS.ClassesTable.setPicture(id, newDetails.picture);
+		}
+
+		if (newDetails.reference) {
+			await TNS.ClassesTable.setReference(id, newDetails.reference);
+		}
+
+		if (newDetails.delete) {
+			if (user.classLevel > 0 || user.adminLevel > 0) {
+				await TNS.ClassesTable.deleteClass(id);
+			} else {
+				throw "Missing Permissions";
+			}
+		}
+
+		if (newDetails.owner) {
+			let owner = await TNS.get("SELECT * FROM UsersPrivate WHERE id = ?", [newDetails.owner]);
+
+			if ((user.classLevel > 0 || user.adminLevel > 0) && (owner.classLevel > 0 || user.adminLevel > 0)) {
+				await TNS.ClassesTable.changeOwner(id, newDetails.owner);
+			} else {
+				throw "Missing Permissions";
+			}
+
+		}
+
+		res.send(JSON.stringify({"success": true}));
+
+	} catch (err) {
+		res.send(JSON.stringify({"success": false, "reason": err}));
+		console.log("[CLASS][ERR]")
+		console.log(err);
+	}
+})
 
 var listener = wss.listen(2020, () => {
   console.log(`App is listening on port ${listener.address().port}`);

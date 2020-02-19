@@ -45,12 +45,12 @@
 
 <script id="groupHTML" type="text/x-handlebars-template">
 	{{#each data}}
-	<li group-ref="{{groupID}}" 
-		onclick="asm.chatManager.switchActiveGroup('{{groupID}}')" 
+	<li group-ref="{{classId}}" 
+		onclick="asm.chatManager.switchActiveGroup('{{classId}}')" 
 		class="center-align tooltipped group" 
 		data-position="right" 
 		data-tooltip="{{name}}">
-		<img class="circle hoverable groupPicture" src="{{groupPicture}}">
+		<img class="circle hoverable groupPicture" src="{{picture}}">
 	</li>
 	{{/each}}
 </script>

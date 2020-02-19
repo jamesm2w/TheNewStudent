@@ -43,10 +43,12 @@ class UserProfileTable {
 
 	getAllWithUsername(username, search = false) {
 		if (search) {
-			return this.tns.all(`SELECT id, username, picture FROM Users
-				INNER JOIN Profiles ON Profiles.userId = Users.id
-				INNER JOIN UserLevels ON UserLevels.userId = Users.id
-				WHERE username LIKE "${username}%" AND verified = 1;`);
+			return this.tns.all(`SELECT 
+				UsersPublic.id, UsersPublic.username, UsersPublic.ref, points, 
+				picture, description, classLevel, chatLevel, 
+				adminLevel FROM UsersPublic
+				INNER JOIN Users ON Users.id = UsersPublic.id
+				WHERE UsersPublic.username LIKE "${username}%" AND Users.verified = 1;`);
 		} else {
 			return this.tns.all("SELECT * FROM Users WHERE username = ?", [username]);
 		}

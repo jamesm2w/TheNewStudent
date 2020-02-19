@@ -67,6 +67,7 @@ class Router {
 					if (route.beforeShow.call({"stateManager": scope.stateManager})) {
 						scope.element.innerHTML = this.responseText;
 						scope.stateManager.currentPage = route.name;
+						scope.stateManager.switchPage();
 						route.afterShow.call({"stateManager": scope.stateManager});
 					} else {
 						window.location.hash = scope.stateManager.currentPage; // Cancels the switch to the other page
