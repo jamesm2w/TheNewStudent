@@ -95,18 +95,6 @@ class TheNewStudent {
 		});
 
 		this.transporter = nodemailer.createTransport({
-		    /*host: "smtp.ethereal.email",
-		    port: 587,
-		    auth: {
-		        user: "harry4@ethereal.email",
-		        pass: "aqT1Q5xAkq6eg2GhG3"
-		    }
-		    /*host: "smtp-pulse.com",
-		    port: 2525,
-		    auth: {
-		    	user: "jamesmacerwright@gmail.com",
-		    	pass: "X5g8j7jk9r"
-		    }*/
 		});
 	}
 
