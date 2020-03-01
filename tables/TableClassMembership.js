@@ -9,7 +9,7 @@ class TableClassMemberships {
 			classId INT REFERENCES Classes(id) ON UPDATE CASCADE ON DELETE CASCADE,
 			userId INT REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
 			level INT NOT NULL DEFAULT 0,
-			progress INT NOT NULL DEFAULT 0,
+			progress INT REFERENCES Progress(id) ON UPDATE CASCADE ON DELETE CASCADE,
 			PRIMARY KEY (classId, userId)	
 		);`);
 	}

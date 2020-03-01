@@ -20,6 +20,37 @@ class ProfilePage {
 		}
 	}
 
+	static async deletePractice (id) {
+		try {
+
+			let data = await Request.get(`/profile/questionSet/delete?id=${id}`).execute();
+			if (data.success) {
+				asm.toast("Deleted practice set");
+				asm.profilePage.refreshPage();
+			} else {
+				throw data.reason;
+			}
+		} catch (err) {
+			console.log(err);
+			asm.toast(err);
+		}
+	}
+
+	async getQuestionSetsInProgress () {
+		try {
+			let progress = await Request.get("/profile/questions").execute();
+
+			if (progress.success) {
+				return progress.data;
+			} else {
+				throw progress.reason;
+			}
+		} catch (err) {
+			console.log(err);
+			this.stateManager.toast("Error in server communication");
+		}
+	}
+
 	async fetchProfile () {
 		let profile = await Request.get("/profile?t=" + (new Date()).getTime()).execute();
 		let friends = await Request.get("/profile/friends?t=" + (new Date()).getTime()).execute();
@@ -150,6 +181,7 @@ class ProfilePage {
 		let username = $("#findUsername")[0].value;
 
 		try {
+			$("#sendFriendRequestButton")[0].onclick = "";
 			let result = await Request.post("/friendRequest", {"username": username}).execute();
 
 			if (result.success) {
@@ -158,10 +190,12 @@ class ProfilePage {
 			} else {
 				this.stateManager.toast(result.reason);
 			}
-
+			
+			$("#sendFriendRequestButton")[0].onclick="asm.profilePage.sendFriendRequest()";
 		} catch (e) {
 			console.log(e);
 			this.stateManager.toast("Error in server communication");
+			$("#sendFriendRequestButton")[0].onclick="asm.profilePage.sendFriendRequest()";	
 		}
 
 	}
@@ -200,7 +234,7 @@ class ProfilePage {
 		}
 	}
 
-	afterPageShow () {
+	async afterPageShow () {
 
 		if (!this.stateManager.loggedIn) {
 			window.location.hash = "home";
@@ -217,6 +251,10 @@ class ProfilePage {
 		}
 
 		let profile = JSON.parse(JSON.stringify(this.stateManager.profile));
+		
+		let progress = await this.stateManager.profilePage.getQuestionSetsInProgress();
+
+		profile.progress = progress;
 
 		profile.verified = profile.classLevel >= 1;
 		profile.moderator = profile.chatLevel >= 1;
@@ -244,6 +282,7 @@ class ProfilePage {
 		this.stateManager.intialiseModules();
 		M.Collapsible.init($(".collapsible"), {});
     	M.Autocomplete.init($(".autocomplete"), {limit: 10});
+    	M.Modal.init($("#createPracticeSet"), {});
 	}
 
 	async showProfileModal (username) {
@@ -277,6 +316,43 @@ class ProfilePage {
 			asm.toast("Error in server communication")
 		}
 		
+	}
+
+	async showQuestionSetModal () {
+		let modalInstance = M.Modal.getInstance($("#createPracticeSet")[0]);
+			
+		if (!M.Range.getInstance($("#difficultySelect")[0])) {
+			M.Range.init($("#difficultySelect"));
+		}
+
+		$("#createQuestionSetSubmit")[0].onclick = (e) => {
+			let difficulty = $("#difficultySelect")[0].value;
+			let subject = $("#setSubject")[0].value;
+			let numberOfQuestions = $("#questionNumber")[0].value;
+
+			if (difficulty == "" || subject == "" || numberOfQuestions == 0 || numberOfQuestions == "") {
+				asm.toast("Missing required field.")
+				return;
+			} else {
+				Request.post("/profile/questions/new", {
+					"difficulty": difficulty,
+					"subject": subject,
+					"number": numberOfQuestions
+				}).execute().then(data => {
+					if (data.success) {
+						asm.toast("Created Question Set");
+						asm.profilePage.afterPageShow();
+					} else {
+						console.log(data);
+						asm.toast(data.reason);
+					}
+				}).catch(err => {
+					console.log(err);
+					asm.toast("Error in Server communication");
+				});
+			}
+		};
+		modalInstance.open();
 	}
 	
 }

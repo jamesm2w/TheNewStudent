@@ -10,6 +10,7 @@ class ApplicationStateManager {
 		this.profilePage = new ProfilePage(this);
 		this.classPage = new ClassPage(this);
 		this.chatManager = new ChatClient(this);
+		this.questionPage = new QuestionPage(this);
 
 		this.pageRouter = this.createRouter();
 		this.currentPage = "home";
@@ -33,7 +34,7 @@ class ApplicationStateManager {
 			this.homePage.route,
 			this.profilePage.route,
 			this.classPage.route,
-			new Route("questions", "questions.html"),
+			this.questionPage.route,
 			this.chatManager.route
 		], this);
 	}

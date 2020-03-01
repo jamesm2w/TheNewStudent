@@ -1,1 +1,135 @@
-<h6>questions.html</h6>
+<script id="correctAnswerTemplate" type="text/x-handlebars-template">
+	<div class="card-panel green darken-1 white-text valign-wrapper hoverable" style="justify-content: space-between;">
+		<i class="material-icons">check</i> Correct Answer. You gained {{points}} points.
+		<a class="btn white green-text text-darken-1" onclick="asm.questionPage.nextQuestion()">
+			<i class="material-icons">navigate_next</i>
+		</a>
+	</div>
+</script>
+
+<script id="incorrectAnswerTemplate" type="text/x-handlebars-template">
+	<div class="card-panel red darken-3 white-text valign-wrapper hoverable" style="justify-content: space-between;">
+		<i class="material-icons">close</i> Incorrect Answer. {{#if points}}You gained {{points}} point.{{/if}} 
+		{{#if correct}} 
+			<a href="data:text/plain,{{correct}}" tagret="_blank">View Correct Answer</a>
+		{{/if}}
+		<a class="btn white red-text text-darken-3" onclick="asm.questionPage.nextQuestion()">
+			<i class="material-icons">navigate_next</i>
+		</a>
+	</div>
+</script>
+
+<script id="indeterminateAnswerTemplate" type="text/x-handlebars-template">
+	<div class="card-panel blue darken-3 white-text valign-wrapper hoverable" style="justify-content: space-between;">
+		<i class="material-icons">indeterminate_check_box</i> You answer has been sent for marking. 
+		<a class="btn white blue-text text-darken-3" onclick="asm.questionPage.nextQuestion()">
+			<i class="material-icons">navigate_next</i>
+		</a>
+	</div>
+</script>
+
+<script id="finalScreenTemplate" type="text/x-handlebars-template">
+	<div class="card hoverable">
+		<div class="card-content">
+			<span class="card-title">Question Set Finished</span>
+			
+			<div class="row">
+				<div class="col s12 m6">
+					<div class="btn red darken-3 white-text waves-effect waves-lighten valign-wrapper" onclick="ProfilePage.deletePractice({{setId}}); window.location.hash='profile';" style="display: flex;">
+						<i class="material-icons">delete</i>
+						<span>Set</span>
+					</div>
+				</div>
+				<div class="col s12 m6">
+					<div class="btn blue darken-3 white-text waves-effect waves-lighten valign-wrapper" onclick="window.location.hash='profile';" style="display: flex;">
+						<i class="material-icons">exit_to_app</i>
+						<span>Exit</span>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</script>
+
+<script id="questionTemplate" type="text/x-handlebars-template">
+	<div class="card hoverable">
+		<div class="card-content">
+			<span class="card-title">Question {{number}}</span>
+			{{text}}
+			{{#if media}}
+				<a href="{{media}}" target="_blank">View Media</a>
+			{{/if}}
+		</div>
+		<div class="card-content">
+			{{#if multipleChoice}}
+				<div class="row">
+					{{#each options}}
+						<p class="col s12 m6">
+					      <label>
+					        <input value="{{@index}}" name="questionOptions" type="radio"/>
+					        <span>{{this}}</span>
+					      </label>
+					    </p>
+					{{/each}}
+				</div>
+			{{/if}}
+			{{#if shortAnswer}}
+				<div class="input-field">
+					<input id="questionAnswer" type="text">
+          			<label for="questionAnswer">Answer</label>
+      			</div>
+			{{/if}}
+			{{#if longAnswer}}
+				<div class="input-field">
+					<textarea id="questionAnswer" class="materialize-textarea"></textarea>
+      			    <label for="questionAnswer">Answer</label>
+     			</div>
+			{{/if}}
+			{{#if latextInput}}
+				<div style="width: 100%;">
+					<h6>Mathematical Input:</h6>
+					<span id="math-field" style="width: 100%; min-height: 2em; font-size: 2em;"></span>
+				</div>
+			{{/if}}
+		</div>
+		<div class="card-action">
+			<a class="blue-text text-darken-3 waves-effect waves-lighten" id="helpbutton">Ask for Help</a>
+			<a class="blue-text text-darken-3 waves-effect waves-lighten" id="submitanswer">Submit</a>
+		</div>
+	</div>
+</script>
+
+<script id="questionBarTemplate" type="text/x-handlebars-template">
+	<div class="card-panel blue-grey darken-3 white-text center-align" style="justify-content: space-between;">
+		<span class="center-align">Question {{printQuestionNum}} of {{maxQuestions}}. Correct: {{percentCorrect}}%. Points: {{pointsGained}}</span>
+		<div class="progress green darken-3">
+			<div class="determinate green accent-3" style="width: calc(calc({{printQuestionNum}} / {{maxQuestions}}) * 100%)"></div>
+		</div>
+	</div>
+</script>
+
+<script id="answerQuestionTemplate" type="text/x-handlebars-template">
+	<div class="col s12" style="padding-top: 20px;" id="questionBar">
+	</div>
+
+	<div class="col s12 m8 push-m2" id="feedbackBox">
+	</div>
+
+	<div class="col s12 m6 push-m3" id="questionArea">
+	</div>
+</script>
+
+<div id="createQuestion" class="modal modal-fixed-footer">
+	<div class="modal-content">
+		<h4>Create Question</h4>
+	</div>
+	<div class="modal-footer">
+		
+	</div>
+</div>
+
+<div class="row container" id="questionContainer">
+
+	
+</div>

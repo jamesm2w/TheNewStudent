@@ -2,8 +2,25 @@ class ClassPage {
 	constructor (asm) {
 		this.stateManager = asm;
 		this.route = new Route("class", "class.html", this.afterPageShow, this.beforePageShow);
+		ClassPage.addedQuestions = [];
 	}
 
+	static async deleteClassHomework (id) {
+		try {
+			let response = await Request.post(`/classes/${id}/homework/delete`, {}).execute();
+
+			if (response.success) {
+				asm.toast("Delete homework successfully");
+				asm.classPage.switchClass(id);
+			} else {
+				asm.toast(response.reason);
+			}
+		} catch (err) {
+			console.log(err);
+			asm.toast("Error in server communication");
+		}
+	}
+ 
 	static async createNewClass (e) {
 		let name = $("#newClassName")[0];
 		let description = $("#newClassDescription")[0];
@@ -45,7 +62,7 @@ class ClassPage {
 		try {
 
 			let classData = await Request.get(`/classes?id=${id}`).execute();
-
+			this.class = id;
 			if (!classData.success) {
 				throw classData.reason;
 			} else {
@@ -56,8 +73,8 @@ class ClassPage {
 
 				$("#classContainer")[0].innerHTML = Handlebars.compile($("#classInfoPanel")[0].innerHTML)(classData.data);
 
-				this.loadClassMembers(classData);
-				this.loadClassHomework(id);
+				await this.loadClassMembers(classData);
+				await this.loadClassHomework(id, classData);
 
 				$("#editClassBtn")[0].addEventListener("click", (e) => {
 					M.Modal.getInstance($("#editClassModal")[0]).open();
@@ -158,8 +175,149 @@ class ClassPage {
 
 	}
 
-	async loadClassHomework (id) {
-		console.log(id)
+	async loadClassHomework (id, classData) {
+		try {
+			let homeworkData = await Request.get(`/classes/${id}/homework`).execute();
+			if (homeworkData.success) {
+				
+				console.log(homeworkData.data);
+
+				homeworkData.verified = this.stateManager.profile.username == classData.data.ownerUsername || 
+							this.stateManager.profile.adminLevel > 0;
+
+				homeworkData.classId = id;
+
+				$("#classContainer")[0].innerHTML += Handlebars.compile($("#classHomework")[0].innerHTML)(homeworkData);
+
+			} else {
+				this.stateManager.toast(homeworkData.reason);
+				console.log(homeworkData.reason);
+			}
+		} catch (err) {
+			console.log(err);
+			this.stateManager.toast("Error in server communication");
+		}
+	}
+
+	static async openHomeworkModal () {
+		let modalInstance = M.Modal.getInstance($("#createHomework")[0]);
+
+		let dueInstance = M.Datepicker.getInstance($("#chooseDueDate")[0]);
+		if (!dueInstance) {
+			M.Datepicker.init($("#chooseDueDate"), {
+				minDate: new Date(),
+				showDaysInNextAndPreviousMonths: true,
+				container: $("body")[0]
+			});
+		}
+
+		//let selectInstance = M.FormSelect.getInstance($("#questionSetSelect")[0]);
+		//if (!selectInstance) {
+		//	M.FormSelect.init($("#questionSetSelect"));
+		//}
+
+		$("#createHomeworkSubject")[0].oninput = async (e) => {
+			try {
+
+				let response = await Request.get(`/questions/search?subject=${e.target.value}`).execute();
+				if (response.success) {
+					$("#searchQuestionResults")[0].innerHTML = "";
+					for (let question of response.data) {
+						question.add = true;
+						$("#searchQuestionResults")[0].innerHTML += 
+							Handlebars.compile($("#questionListQuestion")[0].innerHTML)(question);
+					}
+
+					if (response.data == []) {
+						$("#searchQuestionResults")[0].innerHTML += `<li>No Questions Matching</li>`;
+					}
+				} else {
+					asm.toast(response.reason);
+				}
+
+			} catch (err) {
+				console.log(err);
+				asm.toast("Error in server communication");
+			}
+		}
+
+		$("#createHomeworkSubmit")[0].onclick = async (e) => {
+				
+			if($("#chooseDueDate").value == "") {asm.toast("Set a due date"); return};
+
+			if ($("#questionSetSelect")[0].value == 0 || $("#questionSetSelect")[0].value == "") {
+
+				let difficulty = $("#difficultySelect")[0].value;
+				let subject = $("#createHomeworkSubject")[0].value;
+
+				if (difficulty == "" || subject == ""){ asm.toast("Set a difficulty/subject"); return;}
+
+				let questions = ClassPage.addedQuestions;
+				if (questions == [] || questions.length == 0){ asm.toast("You must set at least 1 question"); return;}
+
+				console.log(difficulty, subject, questions.length, questions);
+				let resp = await Request.post(`/classes/${asm.classPage.class}/homework/new`, {
+					"due": $("#chooseDueDate").value,
+					"difficulty": difficulty,
+					"subject": subject,
+					"number": questions.length,
+					"questions": questions
+				}).execute();
+
+				console.log(resp);
+				if (resp.success) {
+					asm.toast("Created homework");
+					asm.classPage.switchClass(asm.classPage.class);
+				} else {
+					asm.toast(JSON.stringify(resp.reason));
+				}
+			
+			} else {
+				let resp = await Request.post(`/classes/${asm.classPage.class}/homework/new`, {
+					"questionSet": $("#questionSetSelect")[0].value, 
+					"due": $("#chooseDueDate").value 
+				}).execute();
+
+				console.log(resp);
+				if (resp.success) {
+					asm.toast("Created homework");
+				} else {
+					asm.toast(JSON.stringify(resp.reason));
+				}
+			}
+
+			
+		};
+
+
+		modalInstance.open();
+	}
+
+	static async moveQuestion (id, direction) {
+		try {
+			let question = await Request.get(`/questions/${id}`).execute();
+			if (question.success) {
+
+				$("#question" + question.data.id)[0].remove();
+
+				if (direction == "add") {
+					ClassPage.addedQuestions.push(question.data.id);
+					$("#questionSetQuestions")[0].innerHTML += 
+						Handlebars.compile($("#questionListQuestion")[0].innerHTML)(question.data);
+				} else if (direction == "remove") {
+					ClassPage.addedQuestions = ClassPage.addedQuestions.filter(el => el !== question.data.id);
+					$("#searchQuestionResults")[0].innerHTML += 
+						Handlebars.compile($("#questionListQuestion")[0].innerHTML)(question.data);
+				}
+
+			} else {
+				console.log(question.reason);
+				asm.toast(question.reason)
+			}
+		} catch (err) {
+			console.log(err);
+			asm.toast("Error in server communication");
+		}
 	}
 
 	async afterPageShow () {
@@ -185,10 +343,13 @@ class ClassPage {
 
 			M.Modal.init($("#newClassModal"), {});
 			M.Modal.init($("#editClassModal"), {});
+			M.Modal.init($("#createHomework"), {});
 			M.Autocomplete.init($("#changeOwner")[0], {limit: 10});
 			M.CharacterCounter.init($(".count"), {});
 			
 			$("#createNewClass")[0].addEventListener("click", ClassPage.createNewClass);
+
+			ClassPage.addedQuestions = [];
 
 		} catch (err) {
 			console.log(err);

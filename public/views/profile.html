@@ -1,3 +1,30 @@
+<div id="createPracticeSet" class="modal modal-fixed-footer">
+	<div class="modal-content">
+		<h3>Create Question Set</h3>
+		<span>Questions will be filled randomly by subject and difficulty.</span>
+		<div class="row">
+			<div class="input-field col m6 s12">
+		        <input id="setSubject" type="text">
+		        <label for="setSubject">Subject</label>
+		    </div>
+		    <div class="input-field col m6 s12">
+		    	<input id="questionNumber" type="number" min="0" max="20">
+		    	<label for="questionNumber">Number of Questions</label>
+		    </div> 
+			<div class="input-field col m6 s12">
+		        <p class="range-field">
+		        	<label for="difficultySelect">Difficulty:</label>
+					<input type="range" id="difficultySelect" min="0" max="10" />
+			    </p>
+		    </div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<a class="modal-close waves-effect waves-ref btn-flat red-text">Cancel</a>
+		<a id="createQuestionSetSubmit" class="modal-close waves-effect waves-green btn-flat">Create</a>
+	</div>
+</div>
+
 <script id="profileJumbotron" type="text/x-handlebars-template">
 
 	<div class="col s12">
@@ -37,7 +64,7 @@
 				<input type="text" id="findUsername" class="autocomplete" oninput="{{fieldChange}}">
 				<label for="findUsername">Add Friend</label>
 			</div>
-			<a class="waves-effect waves-light btn blue" onclick="{{sendFriendRequest}}"><i class="material-icons right">send</i>Send Request</a>
+			<a id="sendFriendRequestButton" class="waves-effect waves-light btn blue" onclick="{{sendFriendRequest}}"><i class="material-icons right">send</i>Send Request</a>
 		</div>
 
 		<ul class="collection with-header">
@@ -65,13 +92,25 @@
 			</div>
 			<div class="card-tabs blue-text grey">
 				<ul class="tabs tabs-fixed-width blue-text">
-					<li class="tab grey lighten-5"><a href="#test4" class="blue-text">Practice</a></li>
-					<li class="tab grey lighten-5"><a class="active blue-text" href="#test5">Points</a></li>
+					<li class="tab grey lighten-5"><a href="#practiceTab" class="active blue-text">Practice</a></li>
+					<li class="tab grey lighten-5"><a class= blue-text" href="#pointsTab">How To</a></li>
 				</ul>
 			</div>
 			<div class="card-content grey lighten-3">
-				<div id="test4">Collection of the homework that has to be done and question sets in progress</div>
-				<div id="test5">Graph of points for different things over time</div>
+				<div id="practiceTab">
+					{{#each progress}}
+						<div style="margin-bottom: 4px">
+							Subject: {{setSubject}}; Difficulty: {{setDifficulty}}; Progress: {{questionNum}}/{{number}} 
+							<a class="btn-small blue darken-1" onclick="QuestionPage.switchToAnswerQuestion({{setId}})"><i class="material-icons">send</i></a>
+							<a class="btn-small red darken-3" onclick="ProfilePage.deletePractice({{setId}})"><i class="material-icons">delete</i></a>
+						</div>
+						<div class="divider"></div>
+					{{/each}}
+					<div class="btn-large blue darken-2 white-text" style="margin-top: 10px;" onclick="asm.profilePage.showQuestionSetModal()">
+						Create New Practice
+					</div>
+				</div>
+				<div id="pointsTab">On The New Student, you gain points by completing hard question sets. By getting questions right, your account will gain a number of points. If you get a question wrong, you may get a random point as a practice bonus.<br>Questions come in a few different types: Short Answers require you to input a small bit of text as an answer. Long Answers require a longer worded answer and will often be sent to a teacher for marking as part of a homework. Multiple choice questions require you to select the correct option of a given set. Finally Mathematical answers require you to input a number or expression (usually simplified fully).</div>
 			</div>
 		</div>
 	</div>

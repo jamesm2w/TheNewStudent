@@ -65,14 +65,14 @@ class ChatClient {
 
 		this.socket.emit("switchActiveGroup", newGroupId, (result, messages) => {
 			$("#channelMembers")[0].innerHTML = "";
-			console.log(result); // should contain the members and messages
+			//console.log(result); // should contain the members and messages
 			let memberFunc = Handlebars.compile($("#memberHTML")[0].innerHTML);
 			for (let member of result) {
 				$("#channelMembers")[0].innerHTML += memberFunc(member);
 			}
 
 			if (messages) {
-				console.log(messages); // should be the last 10 or so messages in the room
+				//console.log(messages); // should be the last 10 or so messages in the room
 				$("#chatContainer")[0].innerHTML = "";
 				for (let message of messages) {
 					ChatClient.onMessage(message);
@@ -126,7 +126,7 @@ class ChatClient {
 	static onMessage (message) {
 		if (asm.chatManager.onlineStatus == "offline") return;
 
-		console.log(message);
+		//console.log(message);
 		message.verified = message.author.classLevel > 0;
 		message.admin = message.author.adminLevel > 0;
 		message.moderator = message.author.chatLevel > 0;

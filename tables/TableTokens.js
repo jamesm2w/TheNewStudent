@@ -27,7 +27,7 @@ class TokenTable {
 		
 			//await this.tns.run("DELETE FROM Tokens WHERE userId = ?", [userId]);
 			await this.tns.run(sql, params);
-			console.log(await this.tns.all("SELECT * FROM Tokens"));
+			//console.log(await this.tns.all("SELECT * FROM Tokens"));
 			//console.log(token);
 			return token;
 		} catch (e) {
